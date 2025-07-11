@@ -1,0 +1,101 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Managing Risk Through Economic Development-Indonesia</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div id="loginOverlay" class="fixed inset-0 bg-gray-800 bg-opacity-90 flex items-center justify-center z-50">
+    <div class="bg-white p-8 rounded shadow-md w-full max-w-sm">
+      <h2 class="text-xl font-bold mb-4 text-center">Login</h2>
+      <input id="username" type="text" placeholder="admin" class="w-full px-3 py-2 border rounded mb-4">
+      <input id="password" type="password" placeholder="1234" class="w-full px-3 py-2 border rounded mb-6">
+      <button onclick="checkLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded">
+        Login
+      </button>
+      <p id="errorMsg" class="text-red-500 text-sm mt-4 hidden">Username atau password salah!</p>
+    </div>
+  </div>
+
+  <header class="bg-white shadow p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+    <h1 class="text-xl font-bold text-gray-800">Managing Risk Through Economic Development-Indonesia</h1>
+    <div class="relative w-full sm:w-auto">
+      <button id="dropdownButton" class="w-full sm:w-auto inline-flex justify-between items-center border px-4 py-2 bg-white text-gray-700 hover:bg-gray-50">
+        Pilih Menu
+        <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
+      <div id="dropdownMenu" class="absolute z-10 mt-2 w-full sm:w-56 bg-white rounded shadow-lg ring-1 ring-black ring-opacity-5 hidden">
+        <div class="py-1">
+          <a href="#" data-type="powerbi" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">Laporan Utama</a>
+          <a href="actual_vs_target_dashboard_MRED-Indonesia_DA_.html" data-type="actual vs target" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">Actual Vs Target</a>
+          <a href="cctv.html" data-type="cctv" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">CCTV</a>
+          <a href="#" data-type="maps" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">Maps</a>
+          <a href="LF.html" data-type="activity" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">Activity</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="p-4">
+    <div class="aspect-w-16 aspect-h-9">
+      <iframe id="mainFrame" class="w-full h-[80vh] rounded shadow border" frameborder="0" allowfullscreen
+        src="https://app.powerbi.com/reportEmbed?reportId=e8e125ca-d8ec-4f53-a8be-c622aab8fcf7&autoAuth=true&ctid=08de8628-593e-43f5-9ceb-f3e5dd7ae2cb">
+      </iframe>
+    </div>
+  </main>
+
+  <script>
+    function checkLogin() {
+      const u = document.getElementById('username').value;
+      const p = document.getElementById('password').value;
+      const e = document.getElementById('errorMsg');
+      if (u === "MREDIII" && p === "jayajayajaya") {
+        document.getElementById('loginOverlay').style.display = 'none';
+      } else {
+        e.classList.remove('hidden');
+      }
+    }
+
+    const btn = document.getElementById('dropdownButton');
+    const menu = document.getElementById('dropdownMenu');
+    const frame = document.getElementById('mainFrame');
+
+    btn.addEventListener('click', () => menu.classList.toggle('hidden'));
+    document.querySelectorAll('.dropdown-link').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const type = link.dataset.type;
+        menu.classList.add('hidden');
+        if (type === 'powerbi') {
+          frame.src = "https://app.powerbi.com/reportEmbed?reportId=e8e125ca-d8ec-4f53-a8be-c622aab8fcf7&autoAuth=true&ctid=08de8628-593e-43f5-9ceb-f3e5dd7ae2cb";
+        } else if (type === 'cctv') {
+          frame.src = "cctv.html";
+        } else if (type === 'maps') {
+          frame.src = "https://www.google.com/maps/d/embed?mid=1ijGRGpTRMf4U_WScKW8zmg1LAkElZaI&ehbc=2E312F";
+        } else if (type === 'actual vs target') { // <--- ADD THIS BLOCK
+          frame.src = "actual_vs_target_dashboard_MRED-Indonesia_DA_.html";
+        }else if (type === 'activity') { // <--- ADD THIS BLOCK
+          frame.src = "LF.html";
+        }
+      });
+    });
+    window.addEventListener('click', e => {
+      if (!btn.contains(e.target) && !menu.contains(e.target)) menu.classList.add('hidden');
+    });
+  </script>
+
+  <script>
+    tailwind.config = {
+      theme: {extend: {}},
+      plugins: [tailwind.plugin(({addUtilities}) => {
+        addUtilities({'.aspect-w-16': {'aspect-ratio': '16 / 9'}, '.aspect-h-9': {}});
+      })]
+    }
+  </script>
+</body>
+</html>

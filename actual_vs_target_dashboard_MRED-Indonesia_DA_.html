@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actual Vs Target</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        
+        .upload-section {
+            background-color: #e8f4fc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .file-input {
+            margin: 15px 0;
+        }
+        
+        .control-panel {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+        }
+        
+        label {
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .chart-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .chart-title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: 500;
+            line-height: 1.4;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .chart-title span {
+            opacity: 0.8;
+        }
+        
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+        
+        .instructions {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 30px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: #3498db;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        @media (max-width: 768px) {
+            .control-panel {
+                flex-direction: column;
+            }
+            
+            .filter-group {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loginOverlay" class="fixed inset-0 bg-gray-800 bg-opacity-90 flex items-center justify-center z-50">
+  <div class="bg-white p-8 rounded shadow-md w-full max-w-sm">
+    <h2 class="text-xl font-bold mb-4 text-center">Login</h2>
+    <input id="username" type="text" placeholder="admin" class="w-full px-3 py-2 border rounded mb-4">
+    <input id="password" type="password" placeholder="1234" class="w-full px-3 py-2 border rounded mb-6">
+    <button onclick="checkLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded">
+      Login
+    </button>
+    <p id="errorMsg" class="text-red-500 text-sm mt-4 hidden">Username atau password salah!</p>
+  </div>
+</div>
+
+    <div class="container">
+        <h1>Actual Vs Target</h1>
+        
+        <div class="upload-section">
+            <h2>Upload Excel File</h2>
+            <input type="file" id="upload" class="file-input" accept=".xlsx, .xls">
+            <button onclick="document.getElementById('upload').click()">Choose File</button>
+            <p id="fileName"></p>
+        </div>
+        
+        <div class="control-panel">
+            <div class="filter-group">
+                <label for="filterYear">Filter by Year:</label>
+                <select id="filterYear" disabled>
+                    <option value="ALL">All Years</option>
+                    <option value="Y1">Year 1 (Y1)</option>
+                    <option value="Y2">Year 2 (Y2)</option>
+                    <option value="Y3">Year 3 (Y3)</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="activitySelect">Filter by Activity:</label>
+                <select id="activitySelect" disabled>
+                    <option value="ALL">All Activities</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-title" id="titleY1">
+                Year 1 (Y1) Performance Comparison<br>
+                <span style="font-size:14px;">Blue bars = Actual | Red bars = Target</span>
+            </div>
+            <canvas id="chartY1"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-title" id="titleY2">
+                Year 2 (Y2) Performance Comparison<br>
+                <span style="font-size:14px;">Blue bars = Actual | Red bars = Target</span>
+            </div>
+            <canvas id="chartY2"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-title" id="titleY3">
+                Year 3 (Y3) Performance Comparison<br>
+                <span style="font-size:14px;">Blue bars = Actual | Red bars = Target</span>
+            </div>
+            <canvas id="chartY3"></canvas>
+        </div>
+        
+        <div class="instructions">
+            <h3>How to Use This Tool</h3>
+            <ol>
+                <li>Upload an Excel file containing your data</li>
+                <li>Use the filters to view data for specific years and groups</li>
+                <li>Charts will automatically update based on your selections</li>
+            </ol>
+            <p><strong>
+                <ul>
+                  
+                </ul>
+                Charts will compare Actual achievements against Targets for each activity.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let fullData = [];
+        let charts = {};
+        const yearKeys = ["Y1", "Y2", "Y3"];
+        const percentageActivities = ["Activity 1.1.2", "Activity 1.1.3", "Activity 1.3.4", "Activity 2.5.4"];
+
+        // Get the DOM elements
+        const uploadInput = document.getElementById('upload');
+        const filterYear = document.getElementById('filterYear');
+        const activitySelect = document.getElementById('activitySelect');
+        const fileNameDisplay = document.getElementById('fileName');
+
+        // Add event listeners
+        uploadInput.addEventListener('change', handleFile);
+        filterYear.addEventListener('change', updateAllCharts);
+        activitySelect.addEventListener('change', updateAllCharts);
+
+        // Handle file upload
+        function handleFile(e) {
+            const file = e.target.files[0];
+            fileNameDisplay.textContent = `Selected file: ${file.name}`;
+            
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    fullData = XLSX.utils.sheet_to_json(sheet);
+                    console.log("Data loaded successfully:", fullData);
+
+                    populateActivityFilter(fullData);
+                    filterYear.disabled = false;
+                    activitySelect.disabled = false;
+                    updateAllCharts();
+                } catch (error) {
+                    console.error("Error processing file:", error);
+                    alert("Error processing the file. Please make sure it's a valid Excel file.");
+                }
+            };
+            reader.onerror = function() {
+                alert("Error reading the file. Please try again.");
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Populate activity filter dropdown
+        function populateActivityFilter(data) {
+            const activities = new Set();
+            
+            data.forEach(row => {
+                const activity = (row.Activity || "").trim();
+                if (activity) {
+                    activities.add(activity);
+                }
+            });
+
+            // Clear existing options except the default
+            activitySelect.innerHTML = '<option value="ALL">All Activities</option>';
+
+            // Add new activity options
+            const sortedActivities = Array.from(activities).sort();
+            sortedActivities.forEach(activity => {
+                const option = document.createElement('option');
+                option.value = activity;
+                option.text = activity;
+                activitySelect.add(option);
+            });
+        }
+
+        // Update all charts based on current filters
+        function updateAllCharts() {
+            const selectedYear = filterYear.value;
+
+            yearKeys.forEach(year => {
+                const canvasId = `chart${year}`;
+                const titleElement = document.getElementById(`title${year}`);
+                const container = document.getElementById(canvasId).parentElement;
+                
+                // Show/hide based on year selection
+                const shouldShow = (selectedYear === 'ALL' || selectedYear === year);
+                container.style.display = shouldShow ? 'block' : 'none';
+                titleElement.style.display = shouldShow ? 'block' : 'none';
+
+                if (shouldShow) {
+                    updateChart(year, canvasId);
+                }
+            });
+        }
+
+        // Update individual chart
+        function updateChart(yearKey, canvasId) {
+            const selectedActivity = activitySelect.value;
+            const activityMap = {};
+
+            fullData.forEach(row => {
+                const activity = (row.Activity || "").trim();
+                const type = row.Type;
+                let value;
+
+                // Check if the activity is one of the specified percentage activities
+                if (percentageActivities.includes(activity)) {
+                    // Check if the value is a percentage
+                    if (typeof row[yearKey] === 'string' && row[yearKey].includes('%')) {
+                        value = parseFloat(row[yearKey]) / 100 || 0; // Convert to percentage
+                    } else {
+                        value = parseFloat(row[yearKey]) || 0; // Keep as raw numeric value
+                    }
+                } else {
+                    value = parseFloat(row[yearKey]) || 0; // Keep as raw numeric value
+                }
+
+                if (!activity || !type || !(yearKey in row)) return;
+
+                if (selectedActivity !== "ALL" && activity !== selectedActivity) return;
+
+                if (!activityMap[activity]) {
+                    activityMap[activity] = { Target: 0, Actual: 0 };
+                }
+
+                if (type === "Target") {
+                    activityMap[activity].Target = value;
+                } else if (type === "Actual") {
+                    activityMap[activity].Actual = value;
+                }
+            });
+
+            const labels = Object.keys(activityMap).sort();
+            const actual = labels.map(a => activityMap[a].Actual);
+            const target = labels.map(a => activityMap[a].Target);
+
+            renderChart(labels, actual, target, canvasId, yearKey);
+        }
+
+        // Render chart using Chart.js
+        function renderChart(labels, actual, target, canvasId, yearLabel) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+
+            // Destroy previous chart instance if exists
+            if (charts[canvasId]) {
+                charts[canvasId].destroy();
+            }
+
+            // Create new chart
+            charts[canvasId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Actual',
+                            data: actual,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                        },
+                        {
+                            label: 'Target',
+                            data: target,
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { 
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: `Actual vs Target - ${yearLabel}`,
+                            font: {
+                                size: 16
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                afterBody: function(context) {
+                                    const target = context[1].raw;
+                                    const actual = context[0].raw;
+                                    const diff = actual - target; // Numeric difference
+                                    return `Difference: ${diff} (Actual: ${actual}, Target: ${target})`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxRotation: 90,
+                                minRotation: 45,
+                                font: {
+                                    size: 10
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Value'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+
+<script>
+  function checkLogin() {
+    const u = document.getElementById('username').value;
+    const p = document.getElementById('password').value;
+    const e = document.getElementById('errorMsg');
+    if (u === "MREDIII" && p === "jayajayajaya") {
+      document.getElementById('loginOverlay').style.display = 'none';
+    } else {
+      e.classList.remove('hidden');
+    }
+  }
+</script>
+
+</body>
+</html>

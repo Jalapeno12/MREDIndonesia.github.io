@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html lang="id">
+<head>
+  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="utf-8"/>
+<title>MRED III</title>
+<style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding: 40px;
+      overflow-x: auto;
+    }
+    .tree-container {
+      display: flex;
+      flex-direction: row;
+      gap: 40px;
+      align-items: flex-start;
+    }
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .node {
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .outcome { background-color: #1565c0; color: white; font-weight: bold; }
+    .objective { background-color: #2e7d32; color: white; }
+    .activity { background-color: #fbc02d; color: black; }
+
+    .hidden { display: none; }
+    .line {
+      height: 2px;
+      background: #ccc;
+      flex-grow: 1;
+      align-self: center;
+    }
+    .branch {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+<div id="loginOverlay" class="fixed inset-0 bg-gray-800 bg-opacity-90 flex items-center justify-center z-50">
+  <div class="bg-white p-8 rounded shadow-md w-full max-w-sm">
+    <h2 class="text-xl font-bold mb-4 text-center">Login</h2>
+    <input id="username" type="text" placeholder="admin" class="w-full px-3 py-2 border rounded mb-4">
+    <input id="password" type="password" placeholder="1234" class="w-full px-3 py-2 border rounded mb-6">
+    <button onclick="checkLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded">
+      Login
+    </button>
+    <p id="errorMsg" class="text-red-500 text-sm mt-4 hidden">Username atau password salah!</p>
+  </div>
+</div>
+
+<h2><b>Outcome → Objective → Activity</b></h2>
+<div class="tree-container">
+<div class="column" id="outcomes">
+<div class="node outcome" data-target=".obj-group-0" data-toggle="group"><span class="toggle-icon">▶</span><span class="node-text"> + Outcome 1: By 2028, vulnerable communities will enhance  risk awareness and skills of DRR measures and risk-sensitive livelihoods to take effective actions to reduce disaster impacts.</span></div>
+<div class="node outcome" data-target=".obj-group-1" data-toggle="group"><span class="toggle-icon">▶</span><span class="node-text"> + Outcame 2: By 2028, vulnerable communities will  establish functional preparedness mechanisms, access resources for DRR measures, improve disaster and climate risk-sensitive livelihoods, and take effective actions to reduce disaster impacts.</span></div>
+<div class="node outcome" data-target=".obj-group-2" data-toggle="group"><span class="toggle-icon">▶</span><span class="node-text"> + Outcame 3: By 2028 government agencies and private sector actors will support the vulnerable communities to have enhanced and sustained Disaster Ready capacities and adopt improved disaster risk reduction strategies into their planing.</span></div>
+</div>
+<div class="column" id="objectives">
+<div class="node objective hidden obj-group-0" data-target=".act-group-0-0" data-toggle="group"><span class="toggle-icon">▶</span><span class="node-text"> + Outcome 1: By 2028, vulnerable communities will enhance  risk awareness and skills of DRR measures and risk-sensitive livelihoods to take effective actions to reduce disaster impacts.</span></div>
+<div class="node objective hidden obj-group-0" data-target=".act-group-0-1" data-toggle="group"><span class="toggle-icon">▶</span><span class="node-text"> + Objective 2: Vulnerable communities conduct participatory multi-hazard assessment and develop community-level action plan for reducing vulnerability and building capacity.</span></div>
+<div class="node objective hidden obj-group-0" data-target=".act-group-0-2" data-toggle="group"><span class="toggle-icon">▶</span><span class="node-text"> + Objective 3: Vulnerable communities will have improved awareness and knowledge of prevailing disaster risks and risk-sensitive livelihood practices that reduce exposure and enhance resilience, enabling them to be better prepared for disasters.</span></div>
+<div class="node objective hidden obj-group-1" data-target=".act-group-1-0" data-toggle="group"><span class="toggle-icon">▶</span><span class="node-text"> + Objective 4: Vulnerable communities will have established or improved functional disaster preparedness and response mechanisms.</span></div>
+<div class="node objective hidden obj-group-1" data-target=".act-group-1-1" data-toggle="group"><span class="toggle-icon">▶</span><span class="node-text"> + Objective 5: Vulnerable communities will benefit from DRR mitigation measures.</span></div>
+<div class="node objective hidden obj-group-1" data-target=".act-group-1-2" data-toggle="group"><span class="toggle-icon">▶</span><span class="node-text"> + Objective 6: Vulnerable communities will adopt disaster and climate risk-sensitive livelihoods.</span></div>
+<div class="node objective hidden obj-group-2" data-target=".act-group-2-0" data-toggle="group"><span class="toggle-icon">▶</span><span class="node-text"> + Objective 7: Government disaster management institutions have improved capacity to anticipate, prepare for, and respond to natural disasters and climate change-induced disaster.</span></div>
+<div class="node objective hidden obj-group-2" data-target=".act-group-2-1" data-toggle="group"><span class="toggle-icon">▶</span><span class="node-text"> + Objective 8: EWS is established in targeted Vulnerable community and is connected with government-supported end-to-end system.</span></div>
+<div class="node objective hidden obj-group-2" data-target=".act-group-2-2" data-toggle="group"><span class="toggle-icon">▶</span><span class="node-text"> + Objective 9: Nexus value chains and market systems are created and/or improved.</span></div>
+<div class="node objective hidden obj-group-2" data-target=".act-group-2-3" data-toggle="group"><span class="toggle-icon">▶</span><span class="node-text"> + Objective 10: Knowledge products are created and documented from research, innovation, and best practices to contribute to influence for sustainability, replication, and scale.</span></div>
+</div>
+<div class="column" id="activities">
+  <div class="node activity hidden act-group-0-0">Activiti 1.1.1  Developing an inclusive, safe, adaptive, and accountable KSB.</div>
+<div class="node activity hidden act-group-0-0">Activiti 1.1.2  Establishing and strengthening accountable governance for the KSB</div>
+<div class="node activity hidden act-group-0-1">Activiti 1.2.1 Build the capacity, skills and knowledge of communities and equip the task forces to lead their own DRR efforts</div>
+<div class="node activity hidden act-group-0-1">Activiti 1.2.2 Conducting Participatory Disaster Risk Assessment (PDRA) at the community Level and Development of Community Action Plans, which include preparedness, mitigation, and climate-sensitive livelihood approaches and link community priorities to government budgets, DRR policies, and capital investments targeted for disaster preparedness and mitigation.</div>
+<div class="node activity hidden act-group-0-2">Activity 1.3.1 Awareness raising events or activities on disaster preparedness and response</div>
+<div class="node activity hidden act-group-1-0">Activity 2.4.1 Development of community contingency Plan that are aligned with government structures and plans</div>
+<div class="node activity hidden act-group-1-0">Activity 2.4.2 Conduct inclusive scenario-based disaster emergency response simulation</div>
+<div class="node activity hidden act-group-1-0">Activity 2.4.3 Establish or strengthen coordination mechanisms for emergency response, ensuring clear roles and responsibilities among communities, different levels of government during both emergency and recovery phases.</div>
+<div class="node activity hidden act-group-1-1">Activity 2.5.1 Identification, feasibility study and Construction of Disaster Risk Mitigation Infrastructures (structural Mitigation Measures)</div>
+<div class="node activity hidden act-group-1-1">Activity 2.5.2 Identification and establishment of emergency or disaster insurance schemes, financial services or community funding</div>
+<div class="node activity hidden act-group-1-2">Activity 2.6.1 Identification, assessment and implementation of appropriate Disaster and climate risk sensitive agricultural techniques and approaches</div>
+<div class="node activity hidden act-group-1-2">Activity 2.6.2 Capacity building training targeted for adoption of Disaster and climate risk sensitive agricultural techniques and approaches and Market System Development</div>
+<div class="node activity hidden act-group-1-2">Activity 2.6.3 Identification and facilitation of financial support services provision for risk sensitive livelihood (saving, credit, or agricultural insurance)</div>
+<div class="node activity hidden act-group-2-0">Activity 3.7.1 Capacity Building for Government institution on Disaster Risk Management</div>
+<div class="node activity hidden act-group-2-0">Activity 3.7.2 Development of government level DRR policies, practices, plans and interventions that incorporate VCA/PDRA findings and DRR and climate relevant budget allocation</div>
+<div class="node activity hidden act-group-2-0">Activity 3.7.3 Socializing the national policies and laws relevant to the adoption of Disaster Risk Reduction Measures with lower-level governments.</div>
+<div class="node activity hidden act-group-2-0">Activity 3.7.4 Establishment or strengthening of multi-stakeholder platform to improve coordination and communication among public and non-public actors, improving disaster preparedness, emergency response, resource sharing, and decision-making processes.</div>
+<div class="node activity hidden act-group-2-0">Activity 3.7.5  Facilitate access to government support, resources, and facilities, creating opportunities for promoting DRR policies that strengthen local communities’ ability to prepare for, respond to, and recover from disasters.</div>
+<div class="node activity hidden act-group-2-1">Activity 3.8.1  Establishment of multi -hazard EWS that are linked with government end to end system.</div>
+<div class="node activity hidden act-group-2-1">Activity 3.8.2 Facilitation of incorporation of Anticipatory action in Government Disaster Risk management planning/ priority/ agenda</div>
+<div class="node activity hidden act-group-2-1">Activity 3.8.3 Pilot AA: Facilitate public and private partnerships to Adapt technological solutions to meet the needs at the community and household levels, ensuring communities have the resources and training needed to identify triggers, communicate, and respond to the information received</div>
+<div class="node activity hidden act-group-2-2">Activity 3.9.1 Facilitate Engagement of community members with all levels of government and private sectors - through a multi-stakeholder platform to improve coordination and communication, improving access to resources and establish/ strengthen market linkages</div>
+<div class="node activity hidden act-group-2-2">Activity 3.9.2 Facilitation of access to existing NEXUS crop markets and development of sustainability strategies, including private sectors</div>
+<div class="node activity hidden act-group-2-3">Activity 3.10.1 Facilitate networked learning and knowledge-sharing across households, smallholder farmers, government institutions, academic institutions, private sector actors, and civil society organizations.</div>
+<div class="node activity hidden act-group-2-3">Activity 3.10.2 Develop and refine Knowledge management products that capture M-RED practices, learning and impact</div>
+<div class="node activity hidden act-group-2-3">Activity 3.10.3 Utilize different forums /opportunities to influence stakeholders, government, policy makers, and other potential Donors</div>
+</div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-toggle="group"]').forEach(trigger => {
+      const icon = trigger.querySelector('.toggle-icon');
+      const targetSelector = trigger.getAttribute('data-target');
+      const targets = document.querySelectorAll(targetSelector);
+
+      trigger.addEventListener('click', () => {
+        let anyVisible = Array.from(targets).some(el => !el.classList.contains('hidden'));
+        targets.forEach(el => el.classList.toggle('hidden', anyVisible));
+        if (icon) icon.textContent = anyVisible ? "▶" : "▼";
+      });
+    });
+  });
+</script>
+<svg id="connections" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index: 0;"></svg>
+<style>
+  .node:hover {
+    outline: 2px solid #333;
+    z-index: 2;
+  }
+  .highlight {
+    box-shadow: 0 0 10px 2px #29b6f6;
+    transform: scale(1.02);
+    z-index: 1;
+  }
+</style>
+<script>
+  function drawArrows() {
+    const svg = document.getElementById('connections');
+    svg.innerHTML = '';
+
+    const outcomes = document.querySelectorAll('#outcomes .node');
+    const objectives = document.querySelectorAll('#objectives .node:not(.hidden)');
+    const activities = document.querySelectorAll('#activities .node:not(.hidden)');
+
+    outcomes.forEach((outcome, i) => {
+      const outcomeRect = outcome.getBoundingClientRect();
+      if (outcome.offsetParent === null) return;
+
+      objectives.forEach((obj) => {
+        if (obj.classList.contains('obj-group-' + i)) {
+          drawLine(svg, outcome, obj);
+
+          const objIdx = getObjectiveIndex(i, obj);
+          activities.forEach((act) => {
+            if (act.classList.contains('act-group-' + i + '-' + objIdx)) {
+              drawLine(svg, obj, act);
+            }
+          });
+        }
+      });
+    });
+  }
+
+  function getObjectiveIndex(outcomeIdx, element) {
+    const all = Array.from(document.querySelectorAll('.objective.obj-group-' + outcomeIdx));
+    return all.indexOf(element);
+  }
+
+  function drawLine(svg, fromEl, toEl) {
+    if (!fromEl || !toEl || fromEl.offsetParent === null || toEl.offsetParent === null) return;
+
+    const fromRect = fromEl.getBoundingClientRect();
+    const toRect = toEl.getBoundingClientRect();
+    const svgRect = svg.getBoundingClientRect();
+
+    const x1 = fromRect.right - svgRect.left;
+    const y1 = fromRect.top + fromRect.height / 2 - svgRect.top;
+    const x2 = toRect.left - svgRect.left;
+    const y2 = toRect.top + toRect.height / 2 - svgRect.top;
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', x1);
+    line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2);
+    line.setAttribute('y2', y2);
+    line.setAttribute('stroke', '#999');
+    line.setAttribute('stroke-width', '2');
+    line.setAttribute('marker-end', 'url(#arrowhead)');
+    svg.appendChild(line);
+  }
+
+  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  defs.innerHTML = `
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+      refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#999" />
+    </marker>
+  `;
+  document.getElementById("connections").appendChild(defs);
+
+  // Hover highlighting
+  document.querySelectorAll('.node').forEach(el => {
+    el.setAttribute('title', el.textContent.trim()); // Tooltip
+
+    el.addEventListener('mouseenter', () => {
+      const classes = el.classList;
+      if (classes.contains('outcome')) {
+        const idx = Array.from(document.querySelectorAll('#outcomes .node')).indexOf(el);
+        highlightRelated('.obj-group-' + idx);
+      } else if (classes.contains('objective')) {
+        const match = [...el.classList].find(c => c.startsWith('obj-group-'));
+        if (!match) return;
+        const [_, outIdx] = match.split('-');
+        const objIdx = getObjectiveIndex(outIdx, el);
+        highlightRelated('.act-group-' + outIdx + '-' + objIdx);
+      }
+      el.classList.add('highlight');
+    });
+
+    el.addEventListener('mouseleave', () => {
+      document.querySelectorAll('.node').forEach(n => n.classList.remove('highlight'));
+    });
+  });
+
+  function highlightRelated(selector) {
+    document.querySelectorAll(selector).forEach(el => {
+      if (!el.classList.contains('hidden')) {
+        el.classList.add('highlight');
+      }
+    });
+  }
+
+  window.addEventListener('load', () => setTimeout(drawArrows, 300));
+  window.addEventListener('resize', () => setTimeout(drawArrows, 300));
+  document.querySelectorAll('.node').forEach(el => {
+    el.addEventListener('click', () => setTimeout(drawArrows, 400));
+  });
+</script>
+
+<script>
+  function checkLogin() {
+    const u = document.getElementById('username').value;
+    const p = document.getElementById('password').value;
+    const e = document.getElementById('errorMsg');
+    if (u === "MREDIII" && p === "jayajayajaya") {
+      document.getElementById('loginOverlay').style.display = 'none';
+    } else {
+      e.classList.remove('hidden');
+    }
+  }
+</script>
+
+</body>
+</html>

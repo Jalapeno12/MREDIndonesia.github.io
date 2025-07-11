@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard CCTV</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Main Content -->
+  <main class="p-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Kamera Toro -->
+      <div class="bg-white rounded shadow p-2">
+        <img src="https://cctv-sigi.online/cctv/toro.jpg" alt="CCTV Toro" id="cam1" class="rounded w-full h-auto">
+        <p class="text-center mt-2 text-green-600 font-medium">Kamera - Desa Toro</p>
+      </div>
+
+      <!-- Kamera Mataue -->
+      <div class="bg-white rounded shadow p-2">
+        <img src="https://cctv-sigi.online/cctv/mataue.jpg" alt="CCTV Mataue" id="cam2" class="rounded w-full h-auto">
+        <p class="text-center mt-2 text-green-600 font-medium">Kamera - Desa Mataue</p>
+      </div>
+
+      <!-- Kamera Bolapapu -->
+      <div class="bg-white rounded shadow p-2">
+        <img src="https://cctv-sigi.online/cctv/bolapapu.jpg" alt="CCTV Bolapapu" id="cam3" class="rounded w-full h-auto">
+        <p class="text-center mt-2 text-green-600 font-medium">Kamera - Desa Bolapapu</p>
+      </div>
+
+      <!-- Kamera Tuva -->
+      <div class="bg-white rounded shadow p-2">
+        <img src="https://cctv-sigi.online/cctv/tuva.jpg" alt="CCTV Tuva" id="cam4" class="rounded w-full h-auto">
+        <p class="text-center mt-2 text-green-600 font-medium">Kamera - Desa Tuva</p>
+      </div>
+
+      <!-- Kamera Live Tes -->
+      <div class="bg-white rounded shadow p-2">
+        <iframe 
+          src="https://papalu.cctvbadilag.my.id/307271PAPALU/play.html?name=334412332966017211977263"
+          class="w-full h-[300px] rounded"
+          allowfullscreen
+        ></iframe>
+        <p class="text-center mt-2 text-green-600 font-medium">Kamera - Live Tes</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Script -->
+  <script>
+    const refreshInterval = 15000;
+    const camIds = ["cam1", "cam2", "cam3", "cam4"];
+    setInterval(() => {
+      const timestamp = new Date().getTime();
+      camIds.forEach(id => {
+        const img = document.getElementById(id);
+        const baseSrc = img.src.split("?")[0];
+        img.src = `${baseSrc}?t=${timestamp}`;
+      });
+    }, refreshInterval);
+  </script>
+
+</body>
+</html>
