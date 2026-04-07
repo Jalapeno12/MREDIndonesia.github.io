@@ -15,7 +15,7 @@
 body { background:#f1f5f9 }
 .card { background:white; border-radius:14px; padding:20px }
 .kpi-card { cursor:pointer }
-.kpi-active { outline: 3px solid #000 }
+.kpi-active { outline:3px solid #000 }
 </style>
 </head>
 
@@ -50,7 +50,6 @@ body { background:#f1f5f9 }
   <div>
     <label class="font-semibold">Year</label>
     <select id="filterYear" disabled class="border p-2 w-full rounded">
-      <option value="ALL">All</option>
       <option value="Y1">Y1</option>
       <option value="Y2">Y2</option>
       <option value="Y3">Y3</option>
@@ -85,171 +84,177 @@ body { background:#f1f5f9 }
   <canvas id="chartMain"></canvas>
 </div>
 
+<!-- NARRATIVE CONCLUSION -->
+<div class="card">
+  <h2 class="text-xl font-bold mb-3">Narrative Conclusion</h2>
+  <p id="narrativeConclusion" class="text-gray-700 leading-relaxed"></p>
+</div>
+
+<!-- PRIORITY RED -->
+<div class="card">
+  <h2 class="text-xl font-bold mb-3 text-red-600">
+    Priority Actions – Red Performance (&lt;80%)
+  </h2>
+  <div id="redList" class="space-y-3"></div>
+  <p id="noRed" class="text-gray-500 italic hidden">
+    Tidak terdapat aktivitas dengan performa di bawah 80%.
+  </p>
+</div>
+
 </div>
 
 <script>
-/* ===== GLOBAL STATE ===== */
-let fullData = []
-let chart
-let kpiFilter = "ALL"
-const years = ["Y1","Y2","Y3"]
+let fullData=[], chart, kpiFilter="ALL"
 
-/* ===== LOGIN ===== */
+/* LOGIN */
 function checkLogin(){
   if(username.value==="MREDIII" && password.value==="jayajayajaya"){
     loginOverlay.style.display="none"
-  } else {
-    loginError.classList.remove("hidden")
-  }
+  } else loginError.classList.remove("hidden")
 }
 
-/* ===== FILE UPLOAD ===== */
-upload.addEventListener("change", e=>{
-  const file = e.target.files[0]
-  fileName.textContent = file.name
-  const reader = new FileReader()
-  reader.onload = () => {
-    const wb = XLSX.read(reader.result,{type:"array"})
-    fullData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]])
+/* UPLOAD */
+upload.addEventListener("change",e=>{
+  const f=e.target.files[0]
+  fileName.textContent=f.name
+  const r=new FileReader()
+  r.onload=()=>{
+    const wb=XLSX.read(r.result,{type:"array"})
+    fullData=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]])
     populateActivities()
-    filterYear.disabled = false
-    activitySelect.disabled = false
+    filterYear.disabled=false
+    activitySelect.disabled=false
     updateDashboard()
   }
-  reader.readAsArrayBuffer(file)
+  r.readAsArrayBuffer(f)
 })
 
-filterYear.addEventListener("change", resetKpiAndUpdate)
-activitySelect.addEventListener("change", resetKpiAndUpdate)
+filterYear.addEventListener("change",resetKpi)
+activitySelect.addEventListener("change",resetKpi)
 
-/* ===== ACTIVITY LIST ===== */
 function populateActivities(){
-  const acts = [...new Set(fullData.map(r=>r.Activity))].sort()
-  activitySelect.innerHTML = '<option value="ALL">All</option>'
+  const acts=[...new Set(fullData.map(r=>r.Activity))]
+  activitySelect.innerHTML='<option value="ALL">All</option>'
   acts.forEach(a=>{
-    const o = document.createElement("option")
-    o.value = o.text = a
+    const o=document.createElement("option")
+    o.value=o.text=a
     activitySelect.add(o)
   })
 }
 
-/* ===== KPI CLICK ===== */
-function setKpiFilter(type){
-  kpiFilter = (kpiFilter === type) ? "ALL" : type
-  highlightKpi()
+function setKpiFilter(t){
+  kpiFilter=(kpiFilter===t)?"ALL":t
   updateDashboard()
 }
 
-function highlightKpi(){
-  ["GREEN","YELLOW","RED"].forEach(k=>{
-    document.getElementById("kpi"+k).classList.remove("kpi-active")
-  })
-  if(kpiFilter !== "ALL"){
-    document.getElementById("kpi"+kpiFilter).classList.add("kpi-active")
-  }
-}
+function resetKpi(){ kpiFilter="ALL"; updateDashboard() }
 
-function resetKpiAndUpdate(){
-  kpiFilter = "ALL"
-  highlightKpi()
-  updateDashboard()
-}
-
-/* ===== KPI CALCULATION ===== */
+/* KPI */
 function calculateKPI(year){
-  let g=0,y=0,r=0
-  const map = {}
-
+  let g=0,y=0,r=0,map={}
   fullData.forEach(row=>{
-    if(activitySelect.value!=="ALL" && row.Activity!==activitySelect.value) return
-    let v = parseFloat(row[year])
-    if(isNaN(v)) return
-    if(v>0 && v<=1) v*=100
-
-    if(!map[row.Activity]) map[row.Activity] = {A:0,T:0}
-    if(row.Type==="Actual") map[row.Activity].A=v
-    if(row.Type==="Target") map[row.Activity].T=v
+    if(activitySelect.value!=="ALL" && row.Activity!==activitySelect.value)return
+    let v=parseFloat(row[year]); if(isNaN(v))return
+    if(v>0&&v<=1)v*=100
+    if(!map[row.Activity])map[row.Activity]={A:0,T:0}
+    if(row.Type==="Actual")map[row.Activity].A=v
+    if(row.Type==="Target")map[row.Activity].T=v
   })
-
   Object.values(map).forEach(i=>{
     if(i.T>0){
-      const pct = i.A/i.T*100
-      if(pct>=100) g++
-      else if(pct>=80) y++
-      else r++
+      const p=i.A/i.T*100
+      if(p>=100)g++; else if(p>=80)y++; else r++
     }
   })
-
-  kpiGreen.textContent = g
-  kpiYellow.textContent = y
-  kpiRed.textContent = r
+  kpiGreen.textContent=g; kpiYellow.textContent=y; kpiRed.textContent=r
 }
 
-/* ===== DASHBOARD UPDATE ===== */
-function updateDashboard(){
-  const year = filterYear.value==="ALL" ? "Y1" : filterYear.value
-  calculateKPI(year)
-  drawChart(year)
-}
-
-/* ===== CHART ===== */
+/* CHART */
 function drawChart(year){
-  const map = {}
-
+  const map={}
   fullData.forEach(row=>{
-    if(activitySelect.value!=="ALL" && row.Activity!==activitySelect.value) return
-    let v = parseFloat(row[year])
-    if(isNaN(v)) return
-    if(v>0 && v<=1) v*=100
-    if(!map[row.Activity]) map[row.Activity]={A:0,T:0}
-    if(row.Type==="Actual") map[row.Activity].A=v
-    if(row.Type==="Target") map[row.Activity].T=v
+    if(activitySelect.value!=="ALL" && row.Activity!==activitySelect.value)return
+    let v=parseFloat(row[year]); if(isNaN(v))return
+    if(v>0&&v<=1)v*=100
+    if(!map[row.Activity])map[row.Activity]={A:0,T:0}
+    if(row.Type==="Actual")map[row.Activity].A=v
+    if(row.Type==="Target")map[row.Activity].T=v
   })
 
-  const labels=[], actual=[], target=[]
-
-  Object.entries(map).forEach(([act,v])=>{
-    if(v.T<=0) return
-    const pct = v.A/v.T*100
-
-    if(kpiFilter==="GREEN" && pct<100) return
-    if(kpiFilter==="YELLOW" && (pct<80 || pct>=100)) return
-    if(kpiFilter==="RED" && pct>=80) return
-
-    labels.push(act.split(":")[0])
-    actual.push(v.A)
-    target.push(v.T)
+  const labels=[],actual=[],target=[]
+  Object.entries(map).forEach(([a,v])=>{
+    if(v.T<=0)return
+    const p=v.A/v.T*100
+    if(kpiFilter==="GREEN"&&p<100)return
+    if(kpiFilter==="YELLOW"&&(p<80||p>=100))return
+    if(kpiFilter==="RED"&&p>=80)return
+    labels.push(a); actual.push(v.A); target.push(v.T)
   })
 
   chart?.destroy()
-  chart = new Chart(chartMain,{
+  chart=new Chart(chartMain,{
     type:"bar",
-    data:{
-      labels,
-      datasets:[
-        { label:"Target", data:target, backgroundColor:"#fca5a5"},
-        {
-          label:"Actual",
-          data:actual,
-          backgroundColor:actual.map((a,i)=>{
-            const p = (a/target[i])*100
-            return p>=100?"#22c55e":p>=80?"#facc15":"#ef4444"
-          })
-        }
-      ]
-    },
+    data:{labels,datasets:[
+      {label:"Target",data:target,backgroundColor:"#fca5a5"},
+      {label:"Actual",data:actual,
+       backgroundColor:actual.map((a,i)=>{
+        const p=a/target[i]*100
+        return p>=100?"#22c55e":p>=80?"#facc15":"#ef4444"
+       })}
+    ]},
     options:{
-      plugins:{
-        title:{display:true,text:`${year} Performance`},
-        datalabels:{
-          formatter:(v,i)=>Math.round(v/target[i.dataIndex]*100)+"%",
-          anchor:"end",align:"top",font:{weight:"bold",size:10}
-        }
-      },
-      scales:{y:{beginAtZero:true}}
+      plugins:{title:{display:true,text:`${year} Performance`},
+        datalabels:{formatter:(v,i)=>{
+          const t=target[i.dataIndex]; return t>0?Math.round(v/t*100)+"%":""
+        },anchor:"end",align:"top",font:{size:10}}
+      },scales:{y:{beginAtZero:true}}
     },
     plugins:[ChartDataLabels]
   })
+}
+
+/* NARRATIVE */
+function updateNarrative(year){
+  const g=+kpiGreen.textContent,y=+kpiYellow.textContent,r=+kpiRed.textContent
+  narrativeConclusion.innerHTML=`
+  Berdasarkan hasil analisis kinerja Tahun <strong>${year}</strong>, secara umum capaian program menunjukkan performansi yang 
+  <strong>${g>r?"baik":"perlu penguatan"}</strong>. 
+  Sebanyak <strong>${g}</strong> aktivitas telah mencapai atau melampaui target, 
+  <strong>${y}</strong> aktivitas hampir mencapai target, dan 
+  <strong>${r}</strong> aktivitas berada di bawah 80% sehingga menjadi prioritas tindak lanjut.`
+}
+
+/* RED PRIORITY */
+function updateRed(year){
+  const map={},list=[]
+  fullData.forEach(row=>{
+    let v=parseFloat(row[year]); if(isNaN(v))return
+    if(v>0&&v<=1)v*=100
+    if(!map[row.Activity])map[row.Activity]={A:0,T:0}
+    if(row.Type==="Actual")map[row.Activity].A=v
+    if(row.Type==="Target")map[row.Activity].T=v
+  })
+  Object.entries(map).forEach(([a,v])=>{
+    if(v.T>0){
+      const p=Math.round(v.A/v.T*100)
+      if(p<80)list.push({a,p})
+    }
+  })
+  redList.innerHTML=""
+  if(list.length===0){noRed.classList.remove("hidden");return}
+  noRed.classList.add("hidden")
+  list.sort((x,y)=>x.p-y.p).forEach((i,n)=>{
+    redList.innerHTML+=`
+    <div class="p-3 bg-red-50 border-l-4 border-red-600 rounded">
+      <strong>${n+1}. ${i.a}</strong>
+      <span class="float-right text-red-600 font-bold">${i.p}%</span>
+    </div>`
+  })
+}
+
+function updateDashboard(){
+  const y=filterYear.value
+  calculateKPI(y); drawChart(y); updateNarrative(y); updateRed(y)
 }
 </script>
 
