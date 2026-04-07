@@ -120,7 +120,25 @@ upload.addEventListener("change", e=>{
     populateActivities()
     filterYear.disabled=false
     activitySelect.disabled=false
-    updateAll()
+    function updateAll() {
+  const selectedYear = filterYear.value;
+
+  if (selectedYear !== "ALL") {
+    calculateKPI(selectedYear);
+  } else {
+    // default ALL → pakai Y1 sebagai referensi
+    calculateKPI("Y1");
+  }
+
+  years.forEach(y => {
+    document.getElementById("box" + y).style.display =
+      selectedYear === "ALL" || selectedYear === y ? "block" : "none";
+
+    if (selectedYear === "ALL" || selectedYear === y) {
+      drawChart(y);
+    }
+  });
+}
   }
   reader.readAsArrayBuffer(file)
 })
@@ -233,6 +251,33 @@ function drawChart(year) {
   });
 }
 ``
+  function calculateKPI(year) {
+  let green = 0, yellow = 0, red = 0;
+  const map = {};
+
+  fullData.forEach(r => {
+    if (activitySelect.value !== "ALL" && r.Activity !== activitySelect.value) return;
+    let v = parseFloat(r[year]);
+    if (isNaN(v)) return;
+    if (v > 0 && v <= 1) v *= 100;
+
+    if (!map[r.Activity]) map[r.Activity] = { A: 0, T: 0 };
+    map[r.Activity][r.Type] = v;
+  });
+
+  Object.values(map).forEach(i => {
+    if (i.T > 0) {
+      const pct = (i.A / i.T) * 100;
+      if (pct >= 100) green++;
+      else if (pct >= 80) yellow++;
+      else red++;
+    }
+  });
+
+  document.getElementById("kpiGreen").innerText = green;
+  document.getElementById("kpiYellow").innerText = yellow;
+  document.getElementById("kpiRed").innerText = red;
+}
 </script>
 
 </body>
