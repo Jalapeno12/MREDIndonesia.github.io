@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Actual vs Target Dashboard</title>
 
+<!-- CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
@@ -12,11 +13,13 @@
 
 <style>
 body { background:#f1f5f9 }
-.chart-box { background:white; border-radius:14px; padding:20px }
+.card { background:white; border-radius:14px; padding:20px }
+.kpi-card { cursor:pointer }
+.kpi-active { outline: 3px solid #000 }
 </style>
 </head>
 
-<body class="p-4">
+<body class="p-6">
 
 <!-- LOGIN -->
 <div id="loginOverlay" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
@@ -34,12 +37,12 @@ body { background:#f1f5f9 }
 <h1 class="text-3xl font-bold text-center">Actual vs Target Performance</h1>
 
 <!-- UPLOAD -->
-<div class="bg-white p-4 rounded-xl text-center shadow">
+<div class="card text-center">
   <input id="upload" type="file" accept=".xlsx,.xls" class="hidden">
   <button onclick="upload.click()" class="bg-blue-600 text-white px-4 py-2 rounded">
     Upload Excel
   </button>
-  <p id="fileName" class="text-sm text-gray-600 mt-2"></p>
+  <p id="fileName" class="text-gray-600 text-sm mt-2"></p>
 </div>
 
 <!-- FILTER -->
@@ -53,7 +56,6 @@ body { background:#f1f5f9 }
       <option value="Y3">Y3</option>
     </select>
   </div>
-
   <div>
     <label class="font-semibold">Activity</label>
     <select id="activitySelect" disabled class="border p-2 w-full rounded">
@@ -64,34 +66,35 @@ body { background:#f1f5f9 }
 
 <!-- KPI -->
 <div class="grid grid-cols-3 gap-4 text-center">
-  <div class="bg-green-100 p-3 rounded-xl">
+  <div id="kpiGREEN" onclick="setKpiFilter('GREEN')" class="kpi-card bg-green-100 p-4 rounded-xl">
     <p class="text-sm">≥100%</p>
     <p id="kpiGreen" class="text-2xl font-bold">0</p>
   </div>
-  <div class="bg-yellow-100 p-3 rounded-xl">
+  <div id="kpiYELLOW" onclick="setKpiFilter('YELLOW')" class="kpi-card bg-yellow-100 p-4 rounded-xl">
     <p class="text-sm">80–99%</p>
     <p id="kpiYellow" class="text-2xl font-bold">0</p>
   </div>
-  <div class="bg-red-100 p-3 rounded-xl">
+  <div id="kpiRED" onclick="setKpiFilter('RED')" class="kpi-card bg-red-100 p-4 rounded-xl">
     <p class="text-sm">&lt;80%</p>
     <p id="kpiRed" class="text-2xl font-bold">0</p>
   </div>
 </div>
 
-<!-- CHARTS -->
-<div class="space-y-8">
-  <div id="boxY1" class="chart-box"><canvas id="chartY1"></canvas></div>
-  <div id="boxY2" class="chart-box"><canvas id="chartY2"></canvas></div>
-  <div id="boxY3" class="chart-box"><canvas id="chartY3"></canvas></div>
+<!-- CHART -->
+<div class="card">
+  <canvas id="chartMain"></canvas>
 </div>
 
 </div>
 
 <script>
+/* ===== GLOBAL STATE ===== */
 let fullData = []
-let charts = {}
+let chart
+let kpiFilter = "ALL"
 const years = ["Y1","Y2","Y3"]
 
+/* ===== LOGIN ===== */
 function checkLogin(){
   if(username.value==="MREDIII" && password.value==="jayajayajaya"){
     loginOverlay.style.display="none"
@@ -100,9 +103,10 @@ function checkLogin(){
   }
 }
 
-upload.addEventListener("change", e => {
+/* ===== FILE UPLOAD ===== */
+upload.addEventListener("change", e=>{
   const file = e.target.files[0]
-  fileName.innerText = file.name
+  fileName.textContent = file.name
   const reader = new FileReader()
   reader.onload = () => {
     const wb = XLSX.read(reader.result,{type:"array"})
@@ -110,14 +114,15 @@ upload.addEventListener("change", e => {
     populateActivities()
     filterYear.disabled = false
     activitySelect.disabled = false
-    updateAll()
+    updateDashboard()
   }
   reader.readAsArrayBuffer(file)
 })
 
-filterYear.addEventListener("change", updateAll)
-activitySelect.addEventListener("change", updateAll)
+filterYear.addEventListener("change", resetKpiAndUpdate)
+activitySelect.addEventListener("change", resetKpiAndUpdate)
 
+/* ===== ACTIVITY LIST ===== */
 function populateActivities(){
   const acts = [...new Set(fullData.map(r=>r.Activity))].sort()
   activitySelect.innerHTML = '<option value="ALL">All</option>'
@@ -128,7 +133,29 @@ function populateActivities(){
   })
 }
 
-/* ===== KPI KHUSUS (FIX UTAMA) ===== */
+/* ===== KPI CLICK ===== */
+function setKpiFilter(type){
+  kpiFilter = (kpiFilter === type) ? "ALL" : type
+  highlightKpi()
+  updateDashboard()
+}
+
+function highlightKpi(){
+  ["GREEN","YELLOW","RED"].forEach(k=>{
+    document.getElementById("kpi"+k).classList.remove("kpi-active")
+  })
+  if(kpiFilter !== "ALL"){
+    document.getElementById("kpi"+kpiFilter).classList.add("kpi-active")
+  }
+}
+
+function resetKpiAndUpdate(){
+  kpiFilter = "ALL"
+  highlightKpi()
+  updateDashboard()
+}
+
+/* ===== KPI CALCULATION ===== */
 function calculateKPI(year){
   let g=0,y=0,r=0
   const map = {}
@@ -140,70 +167,72 @@ function calculateKPI(year){
     if(v>0 && v<=1) v*=100
 
     if(!map[row.Activity]) map[row.Activity] = {A:0,T:0}
-    if(row.Type==="Actual") map[row.Activity].A = v
-    if(row.Type==="Target") map[row.Activity].T = v
+    if(row.Type==="Actual") map[row.Activity].A=v
+    if(row.Type==="Target") map[row.Activity].T=v
   })
 
   Object.values(map).forEach(i=>{
     if(i.T>0){
-      const pct = i.A / i.T * 100
+      const pct = i.A/i.T*100
       if(pct>=100) g++
       else if(pct>=80) y++
       else r++
     }
   })
 
-  kpiGreen.innerText = g
-  kpiYellow.innerText = y
-  kpiRed.innerText = r
+  kpiGreen.textContent = g
+  kpiYellow.textContent = y
+  kpiRed.textContent = r
 }
 
-function updateAll(){
-  const selected = filterYear.value
-  calculateKPI(selected==="ALL"?"Y1":selected)
-
-  years.forEach(y=>{
-    box = document.getElementById("box"+y)
-    if(selected==="ALL"||selected===y){
-      box.style.display="block"
-      drawChart(y)
-    } else {
-      box.style.display="none"
-    }
-  })
+/* ===== DASHBOARD UPDATE ===== */
+function updateDashboard(){
+  const year = filterYear.value==="ALL" ? "Y1" : filterYear.value
+  calculateKPI(year)
+  drawChart(year)
 }
 
+/* ===== CHART ===== */
 function drawChart(year){
-  const map={}
-  fullData.forEach(r=>{
-    if(activitySelect.value!=="ALL" && r.Activity!==activitySelect.value) return
-    let v = parseFloat(r[year])
+  const map = {}
+
+  fullData.forEach(row=>{
+    if(activitySelect.value!=="ALL" && row.Activity!==activitySelect.value) return
+    let v = parseFloat(row[year])
     if(isNaN(v)) return
     if(v>0 && v<=1) v*=100
-    if(!map[r.Activity]) map[r.Activity]={A:0,T:0}
-    if(r.Type==="Actual") map[r.Activity].A=v
-    if(r.Type==="Target") map[r.Activity].T=v
+    if(!map[row.Activity]) map[row.Activity]={A:0,T:0}
+    if(row.Type==="Actual") map[row.Activity].A=v
+    if(row.Type==="Target") map[row.Activity].T=v
   })
 
   const labels=[], actual=[], target=[]
-  Object.entries(map).forEach(([k,v])=>{
-    labels.push(k.split(":")[0])
+
+  Object.entries(map).forEach(([act,v])=>{
+    if(v.T<=0) return
+    const pct = v.A/v.T*100
+
+    if(kpiFilter==="GREEN" && pct<100) return
+    if(kpiFilter==="YELLOW" && (pct<80 || pct>=100)) return
+    if(kpiFilter==="RED" && pct>=80) return
+
+    labels.push(act.split(":")[0])
     actual.push(v.A)
     target.push(v.T)
   })
 
-  charts[year]?.destroy()
-
-  charts[year] = new Chart(document.getElementById("chart"+year),{
+  chart?.destroy()
+  chart = new Chart(chartMain,{
     type:"bar",
     data:{
       labels,
       datasets:[
         { label:"Target", data:target, backgroundColor:"#fca5a5"},
-        { label:"Actual",
+        {
+          label:"Actual",
           data:actual,
           backgroundColor:actual.map((a,i)=>{
-            const p = target[i]?a/target[i]*100:0
+            const p = (a/target[i])*100
             return p>=100?"#22c55e":p>=80?"#facc15":"#ef4444"
           })
         }
@@ -213,11 +242,11 @@ function drawChart(year){
       plugins:{
         title:{display:true,text:`${year} Performance`},
         datalabels:{
-          formatter:(v,i)=>target[i.dataIndex]?Math.round(v/target[i.dataIndex]*100)+"%":"",
-          anchor:"end", align:"top", font:{weight:"bold",size:10}
+          formatter:(v,i)=>Math.round(v/target[i.dataIndex]*100)+"%",
+          anchor:"end",align:"top",font:{weight:"bold",size:10}
         }
       },
-      scales:{ y:{beginAtZero:true} }
+      scales:{y:{beginAtZero:true}}
     },
     plugins:[ChartDataLabels]
   })
@@ -226,4 +255,3 @@ function drawChart(year){
 
 </body>
 </html>
-``
