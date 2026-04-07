@@ -358,6 +358,12 @@
             const actual = labels.map(a => activityMap[a].Actual);
             const target = labels.map(a => activityMap[a].Target);
 
+          const achievement = labels.map(a => {
+    const t = activityMap[a].Target;
+    const act = activityMap[a].Actual;
+    return t !== 0 ? (act / t) * 100 : 0;
+});
+
             renderChart(labels, actual, target, canvasId, yearKey);
         }
 
