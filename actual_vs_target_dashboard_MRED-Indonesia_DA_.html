@@ -418,17 +418,24 @@
                             }
                         },
                         tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            callbacks: {
-                                afterBody: function(context) {
-                                    const target = context[1].raw;
-                                    const actual = context[0].raw;
-                                    const diff = actual - target; // Numeric difference
-                                    return `Difference: ${diff} (Actual: ${actual}, Target: ${target})`;
-                                }
-                            }
-                        }
+  mode: 'index',
+  intersect: false,
+  callbacks: {
+    label: function(context) {
+      const label = context.dataset.label || '';
+      const value = context.raw;
+      return `${label}: ${value}`;
+    },
+    afterBody: function(context) {
+      const actual = context[0]?.raw ?? 0;
+      const target = context[1]?.raw ?? 0;
+      const percentage = target !== 0
+        ? ((actual / target) * 100).toFixed(1)
+        : 0;
+      return `Achievement: ${percentage}%`;
+    }
+  }
+}
                     },
                     scales: {
                         x: {
