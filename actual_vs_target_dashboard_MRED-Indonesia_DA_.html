@@ -146,73 +146,93 @@ function updateAll(){
   })
 }
 
-function drawChart(year){
-  let map={}
-  let g=y=w=0
-  fullData.forEach(r=>{
-    if(activitySelect.value!=="ALL" && r.Activity!==activitySelect.value) return
-    let v=parseFloat(r[year]); if(isNaN(v)) return
-    if(v>0 && v<=1) v*=100
-    if(!map[r.Activity]) map[r.Activity]={A:0,T:0}
-    if(r.Type==="Actual") map[r.Activity].A=v
-    if(r.Type==="Target") map[r.Activity].T=v
-  })
-  const labels=Object.keys(map).map(a=>a.split(":")[0])
-  const actual=labels.map((_,i)=>Object.values(map)[i].A)
-  const target=labels.map((_,i)=>Object.values(map)[i].T)
+function drawChart(year) {
+  const filtered = {};
+  let green = 0, yellow = 0, red = 0;
 
-  actual.forEach((a,i)=>{
-    const p=target[i]?a/target[i]*100:0
-    if(p>=100) g++; else if(p>=80) y++; else w++
-  })
-  kpiGreen.innerText=g
-  kpiYellow.innerText=y
-  kpiRed.innerText=w
+  // 1. Build map yang konsisten
+  fullData.forEach(r => {
+    if (activitySelect.value !== "ALL" && r.Activity !== activitySelect.value) return;
+    let v = parseFloat(r[year]);
+    if (isNaN(v)) return;
 
-  charts[year]?.destroy()
+    // normalisasi persen (0–1 → 0–100)
+    if (v > 0 && v <= 1) v *= 100;
 
-  charts[year]=new Chart(document.getElementById("chart"+year),{
-    type:"bar",
-    data:{
+    if (!filtered[r.Activity]) filtered[r.Activity] = { Actual: 0, Target: 0 };
+    filtered[r.Activity][r.Type] = v;
+  });
+
+  const labels = [];
+  const actual = [];
+  const target = [];
+
+  // 2. Loop per activity (AMAN)
+  Object.keys(filtered).forEach(act => {
+    const a = filtered[act].Actual || 0;
+    const t = filtered[act].Target || 0;
+
+    labels.push(act.split(":")[0]);
+    actual.push(a);
+    target.push(t);
+
+    if (t > 0) {
+      const pct = (a / t) * 100;
+      if (pct >= 100) green++;
+      else if (pct >= 80) yellow++;
+      else red++;
+    }
+  });
+
+  // 3. Update KPI (SEKARANG AKAN TERISI)
+  document.getElementById("kpiGreen").innerText = green;
+  document.getElementById("kpiYellow").innerText = yellow;
+  document.getElementById("kpiRed").innerText = red;
+
+  charts[year]?.destroy();
+
+  charts[year] = new Chart(document.getElementById("chart" + year), {
+    type: "bar",
+    data: {
       labels,
-      datasets:[
+      datasets: [
         {
-          label:"Target",
-          data:target,
-          backgroundColor:"#fca5a5"
+          label: "Target",
+          data: target,
+          backgroundColor: "#fca5a5"
         },
         {
-          label:"Actual",
-          data:actual,
-          backgroundColor:actual.map((a,i)=>{
-            const p=target[i]?a/target[i]*100:0
-            return p>=100?"#22c55e":p>=80?"#facc15":"#ef4444"
+          label: "Actual",
+          data: actual,
+          backgroundColor: actual.map((a, i) => {
+            const pct = target[i] ? (a / target[i]) * 100 : 0;
+            return pct >= 100 ? "#22c55e" : pct >= 80 ? "#facc15" : "#ef4444";
           })
         }
       ]
     },
-    options:{
-      plugins:{
-        legend:{position:"top"},
-        title:{display:true,text:`${year} Performance`},
-        datalabels:{
-          formatter:(v,ctx)=>{
-            const t=target[ctx.dataIndex]
-            return t?Math.round(v/t*100)+"%":""
+    options: {
+      plugins: {
+        title: { display: true, text: `${year} Performance` },
+        datalabels: {
+          formatter: (v, ctx) => {
+            const t = target[ctx.dataIndex];
+            return t ? Math.round((v / t) * 100) + "%" : "";
           },
-          anchor:"end",
-          align:"top",
-          font:{weight:"bold",size:10}
+          anchor: "end",
+          align: "top",
+          font: { weight: "bold", size: 10 }
         }
       },
-      scales:{
-        x:{ticks:{maxRotation:30,minRotation:30}},
-        y:{beginAtZero:true}
+      scales: {
+        x: { ticks: { maxRotation: 30, minRotation: 30 } },
+        y: { beginAtZero: true }
       }
     },
-    plugins:[ChartDataLabels]
-  })
+    plugins: [ChartDataLabels]
+  });
 }
+``
 </script>
 
 </body>
