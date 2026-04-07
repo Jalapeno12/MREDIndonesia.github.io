@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Actual vs Target (%) Dashboard</title>
+<title>Actual vs Target Dashboard</title>
 
 <!-- CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
@@ -14,8 +14,8 @@
 <style>
 body { background:#f1f5f9 }
 .card { background:white; border-radius:14px; padding:20px }
-.kpi { cursor:pointer }
-.kpi-active { outline:3px solid #000 }
+.kpi-card { cursor:pointer }
+.kpi-active { outline: 3px solid #000 }
 </style>
 </head>
 
@@ -34,15 +34,15 @@ body { background:#f1f5f9 }
 
 <div class="max-w-7xl mx-auto space-y-6">
 
-<h1 class="text-3xl font-bold text-center">Actual vs Target (Achievement %)</h1>
+<h1 class="text-3xl font-bold text-center">Actual vs Target Performance</h1>
 
 <!-- UPLOAD -->
 <div class="card text-center">
-  <input id="upload" type="file" class="hidden" accept=".xlsx,.xls">
+  <input id="upload" type="file" accept=".xlsx,.xls" class="hidden">
   <button onclick="upload.click()" class="bg-blue-600 text-white px-4 py-2 rounded">
     Upload Excel
   </button>
-  <p id="fileName" class="text-sm text-gray-600 mt-2"></p>
+  <p id="fileName" class="text-gray-600 text-sm mt-2"></p>
 </div>
 
 <!-- FILTER -->
@@ -50,6 +50,7 @@ body { background:#f1f5f9 }
   <div>
     <label class="font-semibold">Year</label>
     <select id="filterYear" disabled class="border p-2 w-full rounded">
+      <option value="ALL">All</option>
       <option value="Y1">Y1</option>
       <option value="Y2">Y2</option>
       <option value="Y3">Y3</option>
@@ -65,16 +66,16 @@ body { background:#f1f5f9 }
 
 <!-- KPI -->
 <div class="grid grid-cols-3 gap-4 text-center">
-  <div id="kpiGREEN" onclick="setKpiFilter('GREEN')" class="kpi bg-green-100 p-4 rounded-xl">
-    <p class="text-sm">&ge; 100%</p>
+  <div id="kpiGREEN" onclick="setKpiFilter('GREEN')" class="kpi-card bg-green-100 p-4 rounded-xl">
+    <p class="text-sm">≥100%</p>
     <p id="kpiGreen" class="text-2xl font-bold">0</p>
   </div>
-  <div id="kpiYELLOW" onclick="setKpiFilter('YELLOW')" class="kpi bg-yellow-100 p-4 rounded-xl">
+  <div id="kpiYELLOW" onclick="setKpiFilter('YELLOW')" class="kpi-card bg-yellow-100 p-4 rounded-xl">
     <p class="text-sm">80–99%</p>
     <p id="kpiYellow" class="text-2xl font-bold">0</p>
   </div>
-  <div id="kpiRED" onclick="setKpiFilter('RED')" class="kpi bg-red-100 p-4 rounded-xl">
-    <p class="text-sm">&lt; 80%</p>
+  <div id="kpiRED" onclick="setKpiFilter('RED')" class="kpi-card bg-red-100 p-4 rounded-xl">
+    <p class="text-sm">&lt;80%</p>
     <p id="kpiRed" class="text-2xl font-bold">0</p>
   </div>
 </div>
@@ -87,10 +88,13 @@ body { background:#f1f5f9 }
 </div>
 
 <script>
+/* ===== GLOBAL STATE ===== */
 let fullData = []
 let chart
 let kpiFilter = "ALL"
+const years = ["Y1","Y2","Y3"]
 
+/* ===== LOGIN ===== */
 function checkLogin(){
   if(username.value==="MREDIII" && password.value==="jayajayajaya"){
     loginOverlay.style.display="none"
@@ -99,136 +103,150 @@ function checkLogin(){
   }
 }
 
+/* ===== FILE UPLOAD ===== */
 upload.addEventListener("change", e=>{
   const file = e.target.files[0]
   fileName.textContent = file.name
   const reader = new FileReader()
-  reader.onload = ()=>{
+  reader.onload = () => {
     const wb = XLSX.read(reader.result,{type:"array"})
     fullData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]])
     populateActivities()
-    filterYear.disabled=false
-    activitySelect.disabled=false
+    filterYear.disabled = false
+    activitySelect.disabled = false
     updateDashboard()
   }
   reader.readAsArrayBuffer(file)
 })
 
-filterYear.addEventListener("change", resetFilter)
-activitySelect.addEventListener("change", resetFilter)
+filterYear.addEventListener("change", resetKpiAndUpdate)
+activitySelect.addEventListener("change", resetKpiAndUpdate)
 
+/* ===== ACTIVITY LIST ===== */
 function populateActivities(){
   const acts = [...new Set(fullData.map(r=>r.Activity))].sort()
   activitySelect.innerHTML = '<option value="ALL">All</option>'
   acts.forEach(a=>{
     const o = document.createElement("option")
-    o.value=o.text=a
+    o.value = o.text = a
     activitySelect.add(o)
   })
 }
 
+/* ===== KPI CLICK ===== */
 function setKpiFilter(type){
   kpiFilter = (kpiFilter === type) ? "ALL" : type
+  highlightKpi()
   updateDashboard()
 }
 
-function resetFilter(){
-  kpiFilter="ALL"
+function highlightKpi(){
+  ["GREEN","YELLOW","RED"].forEach(k=>{
+    document.getElementById("kpi"+k).classList.remove("kpi-active")
+  })
+  if(kpiFilter !== "ALL"){
+    document.getElementById("kpi"+kpiFilter).classList.add("kpi-active")
+  }
+}
+
+function resetKpiAndUpdate(){
+  kpiFilter = "ALL"
+  highlightKpi()
   updateDashboard()
 }
 
-function updateDashboard(){
-  calculateKPI()
-  drawChart()
-}
-
-/* ===== KPI ===== */
-function calculateKPI(){
+/* ===== KPI CALCULATION ===== */
+function calculateKPI(year){
   let g=0,y=0,r=0
-  const map={}
+  const map = {}
 
   fullData.forEach(row=>{
     if(activitySelect.value!=="ALL" && row.Activity!==activitySelect.value) return
-    let a=parseFloat(row[filterYear.value])
-    if(isNaN(a)) return
-    if(!map[row.Activity]) map[row.Activity]={A:0,T:0}
-    if(row.Type==="Actual") map[row.Activity].A=a
-    if(row.Type==="Target") map[row.Activity].T=a
+    let v = parseFloat(row[year])
+    if(isNaN(v)) return
+    if(v>0 && v<=1) v*=100
+
+    if(!map[row.Activity]) map[row.Activity] = {A:0,T:0}
+    if(row.Type==="Actual") map[row.Activity].A=v
+    if(row.Type==="Target") map[row.Activity].T=v
   })
 
-  Object.values(map).forEach(v=>{
-    if(v.T>0){
-      const pct=(v.A/v.T)*100
+  Object.values(map).forEach(i=>{
+    if(i.T>0){
+      const pct = i.A/i.T*100
       if(pct>=100) g++
       else if(pct>=80) y++
       else r++
     }
   })
 
-  kpiGreen.textContent=g
-  kpiYellow.textContent=y
-  kpiRed.textContent=r
+  kpiGreen.textContent = g
+  kpiYellow.textContent = y
+  kpiRed.textContent = r
+}
+
+/* ===== DASHBOARD UPDATE ===== */
+function updateDashboard(){
+  const year = filterYear.value==="ALL" ? "Y1" : filterYear.value
+  calculateKPI(year)
+  drawChart(year)
 }
 
 /* ===== CHART ===== */
-function drawChart(){
-  const labels=[], actual=[], target=[]
-  const map={}
+function drawChart(year){
+  const map = {}
 
   fullData.forEach(row=>{
     if(activitySelect.value!=="ALL" && row.Activity!==activitySelect.value) return
-    let v=parseFloat(row[filterYear.value])
+    let v = parseFloat(row[year])
     if(isNaN(v)) return
+    if(v>0 && v<=1) v*=100
     if(!map[row.Activity]) map[row.Activity]={A:0,T:0}
     if(row.Type==="Actual") map[row.Activity].A=v
     if(row.Type==="Target") map[row.Activity].T=v
   })
 
+  const labels=[], actual=[], target=[]
+
   Object.entries(map).forEach(([act,v])=>{
     if(v.T<=0) return
-    const pct=(v.A/v.T)*100
+    const pct = v.A/v.T*100
 
     if(kpiFilter==="GREEN" && pct<100) return
     if(kpiFilter==="YELLOW" && (pct<80 || pct>=100)) return
     if(kpiFilter==="RED" && pct>=80) return
 
     labels.push(act.split(":")[0])
-    actual.push(pct)
-    target.push(100)
+    actual.push(v.A)
+    target.push(v.T)
   })
 
   chart?.destroy()
-  chart=new Chart(chartMain,{
+  chart = new Chart(chartMain,{
     type:"bar",
     data:{
       labels,
       datasets:[
-        {label:"Target",data:target,backgroundColor:"#fca5a5"},
+        { label:"Target", data:target, backgroundColor:"#fca5a5"},
         {
           label:"Actual",
           data:actual,
-          backgroundColor:actual.map(p=>
-            p>=100?"#22c55e":p>=80?"#facc15":"#ef4444"
-          )
+          backgroundColor:actual.map((a,i)=>{
+            const p = (a/target[i])*100
+            return p>=100?"#22c55e":p>=80?"#facc15":"#ef4444"
+          })
         }
       ]
     },
     options:{
       plugins:{
-        title:{display:true,text:"Achievement (%)"},
+        title:{display:true,text:`${year} Performance`},
         datalabels:{
-          formatter:v=>Math.round(v)+"%",
+          formatter:(v,i)=>Math.round(v/target[i.dataIndex]*100)+"%",
           anchor:"end",align:"top",font:{weight:"bold",size:10}
         }
       },
-      scales:{
-        y:{
-          beginAtZero:true,
-          max:200,
-          ticks:{callback:v=>v+"%"},
-          title:{display:true,text:"Achievement (%)"}
-        }
-      }
+      scales:{y:{beginAtZero:true}}
     },
     plugins:[ChartDataLabels]
   })
