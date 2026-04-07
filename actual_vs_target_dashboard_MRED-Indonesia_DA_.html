@@ -364,11 +364,11 @@
     return t !== 0 ? (act / t) * 100 : 0;
 });
 
-            renderChart(labels, actual, target, canvasId, yearKey);
+           renderChart(labels, achievement, canvasId, yearKey);
         }
 
         // Render chart using Chart.js
-        function renderChart(labels, actual, target, canvasId, yearLabel) {
+       function renderChart(labels, achievement, canvasId, yearLabel) {
             const ctx = document.getElementById(canvasId).getContext('2d');
 
             // Destroy previous chart instance if exists
@@ -383,11 +383,11 @@
                     labels: labels,
                     datasets: [
                         {
-                            label: 'Actual',
-                            data: actual,
-                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1,
+                            label: '% Achievement',
+        data: achievement,
+        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
                         },
                         {
                             label: 'Target',
@@ -417,18 +417,11 @@
                                 size: 16
                             }
                         },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            callbacks: {
-                                afterBody: function(context) {
-                                    const target = context[1].raw;
-                                    const actual = context[0].raw;
-                                    const diff = actual - target; // Numeric difference
-                                    return `Difference: ${diff} (Actual: ${actual}, Target: ${target})`;
-                                }
-                            }
-                        }
+                        callbacks: {
+    label: function(context) {
+        return `Achievement: ${context.raw.toFixed(2)}%`;
+    }
+}
                     },
                     scales: {
                         x: {
@@ -444,12 +437,12 @@
                             }
                         },
                         y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Value'
-                            }
-                        }
+    beginAtZero: true,
+    title: {
+        display: true,
+        text: 'Percentage (%)'
+    }
+}
                     }
                 }
             });
