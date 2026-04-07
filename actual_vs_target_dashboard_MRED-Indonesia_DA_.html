@@ -84,7 +84,6 @@
             margin-bottom: 30px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
-            position: relative;
         }
         
         .chart-title {
@@ -99,38 +98,6 @@
         }
         .chart-title span {
             opacity: 0.8;
-        }
-        
-        .achievement-summary {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
-        }
-        
-        .achievement-item {
-            text-align: center;
-        }
-        
-        .achievement-value {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .achievement-over {
-            color: #28a745;
-        }
-        
-        .achievement-under {
-            color: #dc3545;
-        }
-        
-        .achievement-equal {
-            color: #ffc107;
         }
         
         canvas {
@@ -174,11 +141,6 @@
             .filter-group {
                 width: 100%;
             }
-            
-            .achievement-summary {
-                flex-direction: column;
-                gap: 10px;
-            }
         }
     </style>
 </head>
@@ -197,7 +159,7 @@
 </div>
 
     <div class="container">
-        <h1>Actual Vs Target <span style="color: #28a745; font-size: 0.8em;">with Achievement %</span></h1>
+        <h1>Actual Vs Target</h1>
         
         <div class="upload-section">
             <h2>Upload Excel File</h2>
@@ -228,27 +190,24 @@
         <div class="chart-container">
             <div class="chart-title" id="titleY1">
                 Year 1 (Y1) Performance Comparison<br>
-                <span style="font-size:14px;">Blue bars = Actual | Red bars = Target | <strong>Green labels = Achievement %</strong></span>
+                <span style="font-size:14px;">Blue bars = Actual | Red bars = Target</span>
             </div>
-            <div id="summaryY1" class="achievement-summary" style="display: none;"></div>
             <canvas id="chartY1"></canvas>
         </div>
         
         <div class="chart-container">
             <div class="chart-title" id="titleY2">
                 Year 2 (Y2) Performance Comparison<br>
-                <span style="font-size:14px;">Blue bars = Actual | Red bars = Target | <strong>Green labels = Achievement %</strong></span>
+                <span style="font-size:14px;">Blue bars = Actual | Red bars = Target</span>
             </div>
-            <div id="summaryY2" class="achievement-summary" style="display: none;"></div>
             <canvas id="chartY2"></canvas>
         </div>
         
         <div class="chart-container">
             <div class="chart-title" id="titleY3">
                 Year 3 (Y3) Performance Comparison<br>
-                <span style="font-size:14px;">Blue bars = Actual | Red bars = Target | <strong>Green labels = Achievement %</strong></span>
+                <span style="font-size:14px;">Blue bars = Actual | Red bars = Target</span>
             </div>
-            <div id="summaryY3" class="achievement-summary" style="display: none;"></div>
             <canvas id="chartY3"></canvas>
         </div>
         
@@ -257,13 +216,13 @@
             <ol>
                 <li>Upload an Excel file containing your data</li>
                 <li>Use the filters to view data for specific years and groups</li>
-                <li><strong>Charts now show Achievement % on each bar!</strong></li>
-                <li>Summary shows overall achievement statistics</li>
+                <li>Charts will automatically update based on your selections</li>
             </ol>
-            <p><strong>Achievement % = (Actual / Target) × 100</strong><br>
-            <span style="color: #28a745;">🟢 >100% = Over Achievement</span> | 
-            <span style="color: #ffc107;">🟡 100% = On Target</span> | 
-            <span style="color: #dc3545;">🔴 <100% = Under Achievement</span>
+            <p><strong>
+                <ul>
+                  
+                </ul>
+                Charts will compare Actual achievements against Targets for each activity.
             </p>
         </div>
     </div>
@@ -345,7 +304,6 @@
             yearKeys.forEach(year => {
                 const canvasId = `chart${year}`;
                 const titleElement = document.getElementById(`title${year}`);
-                const summaryElement = document.getElementById(`summary${year}`);
                 const container = document.getElementById(canvasId).parentElement;
                 
                 // Show/hide based on year selection
@@ -400,55 +358,17 @@
             const actual = labels.map(a => activityMap[a].Actual);
             const target = labels.map(a => activityMap[a].Target);
 
-            // Calculate achievement percentages
-            const achievement = labels.map((a, index) => {
-                const t = activityMap[a].Target;
-                const act = activityMap[a].Actual;
-                return t !== 0 ? (act / t) * 100 : 0;
-            });
+          const achievement = labels.map(a => {
+    const t = activityMap[a].Target;
+    const act = activityMap[a].Actual;
+    return t !== 0 ? (act / t) * 100 : 0;
+});
 
-            // Calculate summary statistics
-            const avgAchievement = achievement.length > 0 ? 
-                achievement.reduce((sum, val) => sum + val, 0) / achievement.length : 0;
-            const overCount = achievement.filter(p => p > 100).length;
-            const onTargetCount = achievement.filter(p => Math.abs(p - 100) < 1).length;
-            const underCount = achievement.filter(p => p < 100).length;
-
-            updateSummary(summaryY1, avgAchievement, overCount, onTargetCount, underCount, labels.length);
-            if (canvasId === 'chartY2') updateSummary(summaryY2, avgAchievement, overCount, onTargetCount, underCount, labels.length);
-            if (canvasId === 'chartY3') updateSummary(summaryY3, avgAchievement, overCount, onTargetCount, underCount, labels.length);
-
-            renderChart(labels, actual, target, achievement, canvasId, yearKey);
-        }
-
-        // Update achievement summary
-        function updateSummary(summaryElement, avgAchievement, overCount, onTargetCount, underCount, total) {
-            const avgClass = avgAchievement > 100 ? 'achievement-over' : 
-                           avgAchievement >= 95 ? 'achievement-equal' : 'achievement-under';
-            
-            summaryElement.innerHTML = `
-                <div class="achievement-item">
-                    <div class="achievement-value ${avgClass}">${avgAchievement.toFixed(1)}%</div>
-                    <div>Average Achievement</div>
-                </div>
-                <div class="achievement-item">
-                    <div class="achievement-value achievement-over">${overCount}</div>
-                    <div>Over Target</div>
-                </div>
-                <div class="achievement-item">
-                    <div class="achievement-value achievement-equal">${onTargetCount}</div>
-                    <div>On Target</div>
-                </div>
-                <div class="achievement-item">
-                    <div class="achievement-value achievement-under">${underCount}</div>
-                    <div>Under Target</div>
-                </div>
-            `;
-            summaryElement.style.display = 'flex';
+            renderChart(labels, actual, target, canvasId, yearKey);
         }
 
         // Render chart using Chart.js
-        function renderChart(labels, actual, target, achievement, canvasId, yearLabel) {
+        function renderChart(labels, actual, target, canvasId, yearLabel) {
             const ctx = document.getElementById(canvasId).getContext('2d');
 
             // Destroy previous chart instance if exists
@@ -497,6 +417,57 @@
                                 size: 16
                             }
                         },
-                        datalabels: {
-                            anchor: 'end',
-                            align: 'top',
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                afterBody: function(context) {
+                                    const target = context[1].raw;
+                                    const actual = context[0].raw;
+                                    const diff = actual - target; // Numeric difference
+                                    return `Difference: ${diff} (Actual: ${actual}, Target: ${target})`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxRotation: 90,
+                                minRotation: 45,
+                                font: {
+                                    size: 10
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Value'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+
+<script>
+  function checkLogin() {
+    const u = document.getElementById('username').value;
+    const p = document.getElementById('password').value;
+    const e = document.getElementById('errorMsg');
+    if (u === "MREDIII" && p === "jayajayajaya") {
+      document.getElementById('loginOverlay').style.display = 'none';
+    } else {
+      e.classList.remove('hidden');
+    }
+  }
+</script>
+
+</body>
+</html>
