@@ -1,480 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://cdn.tailwindcss.com"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Actual Vs Target</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f7fa;
-            color: #333;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 30px;
-            font-weight: 600;
-        }
-        
-        .upload-section {
-            background-color: #e8f4fc;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
-        
-        .file-input {
-            margin: 15px 0;
-        }
-        
-        .control-panel {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            min-width: 200px;
-        }
-        
-        label {
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #2c3e50;
-        }
-        
-        select {
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            background-color: white;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        
-        .chart-container {
-            background-color: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-        }
-        
-        .chart-title {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-size: 18px;
-            font-weight: 500;
-            line-height: 1.4;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        .chart-title span {
-            opacity: 0.8;
-        }
-        
-        canvas {
-            width: 100% !important;
-            height: auto !important;
-        }
-        
-        .instructions {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 30px;
-            border-left: 4px solid #3498db;
-        }
-        
-        .instructions h3 {
-            margin-top: 0;
-            color: #3498db;
-        }
-        
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.3s;
-        }
-        
-        button:hover {
-            background-color: #2980b9;
-        }
-        
-        @media (max-width: 768px) {
-            .control-panel {
-                flex-direction: column;
-            }
-            
-            .filter-group {
-                width: 100%;
-            }
-        }
-    </style>
-</head>
-<body>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Actual vs Target Dashboard</title>
 
-<div id="loginOverlay" class="fixed inset-0 bg-gray-800 bg-opacity-90 flex items-center justify-center z-50">
-  <div class="bg-white p-8 rounded shadow-md w-full max-w-sm">
+<!-- Libraries -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+body { background:#f1f5f9 }
+.chart-box { background:white; border-radius:12px; padding:20px }
+</style>
+</head>
+
+<body class="p-4">
+
+<!-- LOGIN -->
+<div id="loginOverlay" class="fixed inset-0 flex items-center justify-center bg-black/70 z-50">
+  <div class="bg-white p-8 rounded-xl w-80 shadow">
     <h2 class="text-xl font-bold mb-4 text-center">Login</h2>
-    <input id="username" type="text" placeholder="admin" class="w-full px-3 py-2 border rounded mb-4">
-    <input id="password" type="password" placeholder="1234" class="w-full px-3 py-2 border rounded mb-6">
-    <button onclick="checkLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded">
+    <input id="username" placeholder="Username" class="w-full border p-2 mb-3 rounded"/>
+    <input id="password" type="password" placeholder="Password" class="w-full border p-2 mb-4 rounded"/>
+    <button onclick="checkLogin()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
       Login
     </button>
-    <p id="errorMsg" class="text-red-500 text-sm mt-4 hidden">Username atau password salah!</p>
+    <p id="loginError" class="text-red-600 mt-3 text-sm hidden text-center">Login salah</p>
   </div>
 </div>
 
-    <div class="container">
-        <h1>Actual Vs Target</h1>
-        
-        <div class="upload-section">
-            <h2>Upload Excel File</h2>
-            <input type="file" id="upload" class="file-input" accept=".xlsx, .xls">
-            <button onclick="document.getElementById('upload').click()">Choose File</button>
-            <p id="fileName"></p>
-        </div>
-        
-        <div class="control-panel">
-            <div class="filter-group">
-                <label for="filterYear">Filter by Year:</label>
-                <select id="filterYear" disabled>
-                    <option value="ALL">All Years</option>
-                    <option value="Y1">Year 1 (Y1)</option>
-                    <option value="Y2">Year 2 (Y2)</option>
-                    <option value="Y3">Year 3 (Y3)</option>
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <label for="activitySelect">Filter by Activity:</label>
-                <select id="activitySelect" disabled>
-                    <option value="ALL">All Activities</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="chart-container">
-            <div class="chart-title" id="titleY1">
-                Year 1 (Y1) Performance Comparison<br>
-                <span style="font-size:14px;">Blue bars = Actual | Red bars = Target</span>
-            </div>
-            <canvas id="chartY1"></canvas>
-        </div>
-        
-        <div class="chart-container">
-            <div class="chart-title" id="titleY2">
-                Year 2 (Y2) Performance Comparison<br>
-                <span style="font-size:14px;">Blue bars = Actual | Red bars = Target</span>
-            </div>
-            <canvas id="chartY2"></canvas>
-        </div>
-        
-        <div class="chart-container">
-            <div class="chart-title" id="titleY3">
-                Year 3 (Y3) Performance Comparison<br>
-                <span style="font-size:14px;">Blue bars = Actual | Red bars = Target</span>
-            </div>
-            <canvas id="chartY3"></canvas>
-        </div>
-        
-        <div class="instructions">
-            <h3>How to Use This Tool</h3>
-            <ol>
-                <li>Upload an Excel file containing your data</li>
-                <li>Use the filters to view data for specific years and groups</li>
-                <li>Charts will automatically update based on your selections</li>
-            </ol>
-            <p><strong>
-                <ul>
-                  
-                </ul>
-                Charts will compare Actual achievements against Targets for each activity.
-            </p>
-        </div>
-    </div>
+<div class="max-w-7xl mx-auto space-y-6">
 
-    <script>
-        let fullData = [];
-        let charts = {};
-        const yearKeys = ["Y1", "Y2", "Y3"];
-        const percentageActivities = ["Activity 1.1.2", "Activity 1.1.3", "Activity 1.3.4", "Activity 2.5.4"];
+<!-- HEADER -->
+<h1 class="text-3xl font-bold text-center">Actual vs Target Performance</h1>
 
-        // Get the DOM elements
-        const uploadInput = document.getElementById('upload');
-        const filterYear = document.getElementById('filterYear');
-        const activitySelect = document.getElementById('activitySelect');
-        const fileNameDisplay = document.getElementById('fileName');
+<!-- UPLOAD -->
+<div class="bg-white rounded-xl p-4 shadow text-center">
+  <input id="upload" type="file" accept=".xlsx,.xls" class="hidden"/>
+  <button onclick="document.getElementById('upload').click()"
+          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+    Upload Excel
+  </button>
+  <p id="fileName" class="mt-2 text-gray-600 text-sm"></p>
+</div>
 
-        // Add event listeners
-        uploadInput.addEventListener('change', handleFile);
-        filterYear.addEventListener('change', updateAllCharts);
-        activitySelect.addEventListener('change', updateAllCharts);
+<!-- FILTER -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div>
+    <label class="font-semibold">Year</label>
+    <select id="filterYear" disabled class="border p-2 w-full rounded">
+      <option value="ALL">All</option>
+      <option value="Y1">Y1</option>
+      <option value="Y2">Y2</option>
+      <option value="Y3">Y3</option>
+    </select>
+  </div>
 
-        // Handle file upload
-        function handleFile(e) {
-            const file = e.target.files[0];
-            fileNameDisplay.textContent = `Selected file: ${file.name}`;
-            
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    fullData = XLSX.utils.sheet_to_json(sheet);
-                    console.log("Data loaded successfully:", fullData);
+  <div>
+    <label class="font-semibold">Activity</label>
+    <select id="activitySelect" disabled class="border p-2 w-full rounded">
+      <option value="ALL">All</option>
+    </select>
+  </div>
+</div>
 
-                    populateActivityFilter(fullData);
-                    filterYear.disabled = false;
-                    activitySelect.disabled = false;
-                    updateAllCharts();
-                } catch (error) {
-                    console.error("Error processing file:", error);
-                    alert("Error processing the file. Please make sure it's a valid Excel file.");
-                }
-            };
-            reader.onerror = function() {
-                alert("Error reading the file. Please try again.");
-            };
-            reader.readAsArrayBuffer(file);
-        }
+<!-- KPI -->
+<div class="grid grid-cols-3 gap-4 text-center">
+  <div class="bg-green-100 p-3 rounded-xl">
+    <p class="text-sm text-gray-600">≥100%</p>
+    <p id="kpiGreen" class="text-2xl font-bold">0</p>
+  </div>
+  <div class="bg-yellow-100 p-3 rounded-xl">
+    <p class="text-sm text-gray-600">80–99%</p>
+    <p id="kpiYellow" class="text-2xl font-bold">0</p>
+  </div>
+  <div class="bg-red-100 p-3 rounded-xl">
+    <p class="text-sm text-gray-600"><80%</p>
+    <p id="kpiRed" class="text-2xl font-bold">0</p>
+  </div>
+</div>
 
-        // Populate activity filter dropdown
-        function populateActivityFilter(data) {
-            const activities = new Set();
-            
-            data.forEach(row => {
-                const activity = (row.Activity || "").trim();
-                if (activity) {
-                    activities.add(activity);
-                }
-            });
+<!-- CHARTS -->
+<div id="charts" class="space-y-8">
+  <div id="boxY1" class="chart-box">
+    <canvas id="chartY1"></canvas>
+  </div>
+  <div id="boxY2" class="chart-box">
+    <canvas id="chartY2"></canvas>
+  </div>
+  <div id="boxY3" class="chart-box">
+    <canvas id="chartY3"></canvas>
+  </div>
+</div>
 
-            // Clear existing options except the default
-            activitySelect.innerHTML = '<option value="ALL">All Activities</option>';
-
-            // Add new activity options
-            const sortedActivities = Array.from(activities).sort();
-            sortedActivities.forEach(activity => {
-                const option = document.createElement('option');
-                option.value = activity;
-                option.text = activity;
-                activitySelect.add(option);
-            });
-        }
-
-        // Update all charts based on current filters
-        function updateAllCharts() {
-            const selectedYear = filterYear.value;
-
-            yearKeys.forEach(year => {
-                const canvasId = `chart${year}`;
-                const titleElement = document.getElementById(`title${year}`);
-                const container = document.getElementById(canvasId).parentElement;
-                
-                // Show/hide based on year selection
-                const shouldShow = (selectedYear === 'ALL' || selectedYear === year);
-                container.style.display = shouldShow ? 'block' : 'none';
-                titleElement.style.display = shouldShow ? 'block' : 'none';
-
-                if (shouldShow) {
-                    updateChart(year, canvasId);
-                }
-            });
-        }
-
-        // Update individual chart
-        function updateChart(yearKey, canvasId) {
-            const selectedActivity = activitySelect.value;
-            const activityMap = {};
-
-            fullData.forEach(row => {
-                const activity = (row.Activity || "").trim();
-                const type = row.Type;
-                let value;
-
-                // Check if the activity is one of the specified percentage activities
-                if (percentageActivities.includes(activity)) {
-                    // Check if the value is a percentage
-                    if (typeof row[yearKey] === 'string' && row[yearKey].includes('%')) {
-                        value = parseFloat(row[yearKey]) / 100 || 0; // Convert to percentage
-                    } else {
-                        value = parseFloat(row[yearKey]) || 0; // Keep as raw numeric value
-                    }
-                } else {
-                    value = parseFloat(row[yearKey]) || 0; // Keep as raw numeric value
-                }
-
-                if (!activity || !type || !(yearKey in row)) return;
-
-                if (selectedActivity !== "ALL" && activity !== selectedActivity) return;
-
-                if (!activityMap[activity]) {
-                    activityMap[activity] = { Target: 0, Actual: 0 };
-                }
-
-                if (type === "Target") {
-                    activityMap[activity].Target = value;
-                } else if (type === "Actual") {
-                    activityMap[activity].Actual = value;
-                }
-            });
-
-            const labels = Object.keys(activityMap).sort();
-            const actual = labels.map(a => activityMap[a].Actual);
-            const target = labels.map(a => activityMap[a].Target);
-
-          const achievement = labels.map(a => {
-    const t = activityMap[a].Target;
-    const act = activityMap[a].Actual;
-    return t !== 0 ? (act / t) * 100 : 0;
-});
-
-            renderChart(labels, actual, target, canvasId, yearKey);
-        }
-
-        // Render chart using Chart.js
-        function renderChart(labels, actual, target, canvasId, yearLabel) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-
-            // Destroy previous chart instance if exists
-            if (charts[canvasId]) {
-                charts[canvasId].destroy();
-            }
-
-            // Create new chart
-            charts[canvasId] = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Actual',
-                            data: actual,
-                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1,
-                        },
-                        {
-                            label: 'Target',
-                            data: target,
-                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            borderWidth: 1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { 
-                            position: 'top',
-                            labels: {
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: `Actual vs Target - ${yearLabel}`,
-                            font: {
-                                size: 16
-                            }
-                        },
-                        tooltip: {
-  mode: 'index',
-  intersect: false,
-  callbacks: {
-    label: function(context) {
-      const label = context.dataset.label || '';
-      const value = context.raw;
-      return `${label}: ${value}`;
-    },
-    afterBody: function(context) {
-      const actual = context[0]?.raw ?? 0;
-      const target = context[1]?.raw ?? 0;
-      const percentage = target !== 0
-        ? ((actual / target) * 100).toFixed(1)
-        : 0;
-      return `Achievement: ${percentage}%`;
-    }
-  }
-}
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                maxRotation: 90,
-                                minRotation: 45,
-                                font: {
-                                    size: 10
-                                }
-                            },
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Value'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    </script>
+</div>
 
 <script>
-  function checkLogin() {
-    const u = document.getElementById('username').value;
-    const p = document.getElementById('password').value;
-    const e = document.getElementById('errorMsg');
-    if (u === "MREDIII" && p === "jayajayajaya") {
-      document.getElementById('loginOverlay').style.display = 'none';
-    } else {
-      e.classList.remove('hidden');
-    }
+let fullData=[], charts={}
+const years=["Y1","Y2","Y3"]
+
+function checkLogin(){
+  if(username.value==="MREDIII" && password.value==="jayajayajaya"){
+    loginOverlay.style.display="none"
+  } else {
+    loginError.classList.remove("hidden")
   }
+}
+
+upload.addEventListener("change", e=>{
+  const file=e.target.files[0]
+  fileName.textContent=file.name
+  const reader=new FileReader()
+  reader.onload=()=>{
+    const wb=XLSX.read(reader.result,{type:"array"})
+    fullData=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]])
+    populateActivities()
+    filterYear.disabled=false
+    activitySelect.disabled=false
+    updateAll()
+  }
+  reader.readAsArrayBuffer(file)
+})
+
+filterYear.addEventListener("change",updateAll)
+activitySelect.addEventListener("change",updateAll)
+
+function populateActivities(){
+  const acts=[...new Set(fullData.map(r=>r.Activity))].sort()
+  activitySelect.innerHTML='<option value="ALL">All</option>'
+  acts.forEach(a=>{
+    const o=document.createElement("option")
+    o.value=o.text=a
+    activitySelect.add(o)
+  })
+}
+
+function updateAll(){
+  years.forEach(y=>{
+    document.getElementById("box"+y).style.display=
+      filterYear.value==="ALL"||filterYear.value===y?"block":"none"
+    drawChart(y)
+  })
+}
+
+function drawChart(year){
+  let map={}
+  let g=y=w=0
+  fullData.forEach(r=>{
+    if(activitySelect.value!=="ALL" && r.Activity!==activitySelect.value) return
+    let v=parseFloat(r[year]); if(isNaN(v)) return
+    if(v>0 && v<=1) v*=100
+    if(!map[r.Activity]) map[r.Activity]={A:0,T:0}
+    if(r.Type==="Actual") map[r.Activity].A=v
+    if(r.Type==="Target") map[r.Activity].T=v
+  })
+  const labels=Object.keys(map).map(a=>a.split(":")[0])
+  const actual=labels.map((_,i)=>Object.values(map)[i].A)
+  const target=labels.map((_,i)=>Object.values(map)[i].T)
+
+  actual.forEach((a,i)=>{
+    const p=target[i]?a/target[i]*100:0
+    if(p>=100) g++; else if(p>=80) y++; else w++
+  })
+  kpiGreen.innerText=g
+  kpiYellow.innerText=y
+  kpiRed.innerText=w
+
+  charts[year]?.destroy()
+
+  charts[year]=new Chart(document.getElementById("chart"+year),{
+    type:"bar",
+    data:{
+      labels,
+      datasets:[
+        {
+          label:"Target",
+          data:target,
+          backgroundColor:"#fca5a5"
+        },
+        {
+          label:"Actual",
+          data:actual,
+          backgroundColor:actual.map((a,i)=>{
+            const p=target[i]?a/target[i]*100:0
+            return p>=100?"#22c55e":p>=80?"#facc15":"#ef4444"
+          })
+        }
+      ]
+    },
+    options:{
+      plugins:{
+        legend:{position:"top"},
+        title:{display:true,text:`${year} Performance`},
+        datalabels:{
+          formatter:(v,ctx)=>{
+            const t=target[ctx.dataIndex]
+            return t?Math.round(v/t*100)+"%":""
+          },
+          anchor:"end",
+          align:"top",
+          font:{weight:"bold",size:10}
+        }
+      },
+      scales:{
+        x:{ticks:{maxRotation:30,minRotation:30}},
+        y:{beginAtZero:true}
+      }
+    },
+    plugins:[ChartDataLabels]
+  })
+}
 </script>
 
 </body>
 </html>
+``
