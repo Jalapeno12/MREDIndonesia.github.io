@@ -184,6 +184,20 @@
 </head>
 <body>
 
+<!-- ── Login ── -->
+<div id="loginOverlay">
+  <div class="login-card">
+    <div class="login-logo">📊</div>
+    <h2>Dashboard Login</h2>
+    <p>Actual vs Target Performance</p>
+    <label for="username">Username</label>
+    <input id="username" type="text" placeholder="Enter username" autocomplete="username">
+    <label for="password">Password</label>
+    <input id="password" type="password" placeholder="Enter password" autocomplete="current-password">
+    <button onclick="checkLogin()">Sign In</button>
+    <p id="errorMsg">Incorrect username or password.</p>
+  </div>
+</div>
 
 <!-- ── App ── -->
 <header>
@@ -240,7 +254,41 @@
   </div>
 </main>
 
+<script>
+/* ── Security: SHA-256 hash check ── */
+const CRED_HASH = "eceab4b11ee9e7e0b6bc0a75bfa0c4c21c3617f37fe89cb1614dd6f4c93eedf4";
 
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkLogin() {
+  const u = document.getElementById('username').value.trim();
+  const p = document.getElementById('password').value;
+  const hash = await sha256(u + ':' + p);
+  if (hash === CRED_HASH) {
+    document.getElementById('loginOverlay').style.display = 'none';
+    sessionStorage.setItem('auth', '1');
+  } else {
+    document.getElementById('errorMsg').style.display = 'block';
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem('auth');
+  location.reload();
+}
+
+document.getElementById('password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkLogin();
+});
+
+if (!sessionStorage.getItem('auth')) {
+  document.getElementById('loginOverlay').style.display = 'flex';
+} else {
+  document.getElementById('loginOverlay').style.display = 'none';
+}
 
 /* ── App state ── */
 let fullData = [];
