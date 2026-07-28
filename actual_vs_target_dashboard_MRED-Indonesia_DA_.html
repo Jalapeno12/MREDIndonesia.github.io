@@ -3,247 +3,202 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Actual vs Target Dashboard</title>
-
-<!-- CDN -->
+<title>Modern Actual vs Target Dashboard</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
 <style>
-body { background:#f1f5f9 }
-.card { background:white; border-radius:14px; padding:20px }
-.kpi-card { cursor:pointer }
-.kpi-active { outline:3px solid #000 }
+body{background:#f8fafc}
+.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 8px 20px rgba(0,0,0,.08)}
+.kpi{border-radius:14px;padding:18px;color:#fff;cursor:pointer;transition:.25s}
+.kpi:hover{transform:translateY(-4px);box-shadow:0 10px 20px rgba(0,0,0,.18)}
+.kpi.active{outline:4px solid #111827}
 </style>
 </head>
-
 <body class="p-6">
-
-
-
 <div class="max-w-7xl mx-auto space-y-6">
 
-<h1 class="text-3xl font-bold text-center">Actual vs Target Performance</h1>
+<h1 class="text-3xl font-bold text-center">Actual vs Target Performance Dashboard</h1>
 
-<!-- UPLOAD -->
 <div class="card text-center">
-  <input id="upload" type="file" accept=".xlsx,.xls" class="hidden">
-  <button onclick="upload.click()" class="bg-blue-600 text-white px-4 py-2 rounded">
-    Upload Excel
-  </button>
-  <p id="fileName" class="text-gray-600 text-sm mt-2"></p>
+<input id="upload" type="file" accept=".xlsx,.xls" class="hidden">
+<button onclick="document.getElementById('upload').click()"
+class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg">
+Upload Excel
+</button>
+<p id="fileName" class="mt-2 text-gray-500"></p>
 </div>
 
-<!-- FILTER -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-  <div>
-    <label class="font-semibold">Year</label>
-    <select id="filterYear" disabled class="border p-2 w-full rounded">
-      <option value="Y1">Y1</option>
-      <option value="Y2">Y2</option>
-      <option value="Y3">Y3</option>
-    </select>
-  </div>
-  <div>
-    <label class="font-semibold">Activity</label>
-    <select id="activitySelect" disabled class="border p-2 w-full rounded">
-      <option value="ALL">All</option>
-    </select>
-  </div>
+<div class="grid md:grid-cols-3 gap-4">
+<div id="cardGreen" onclick="setFilter('GREEN')" class="kpi bg-green-600"><div>Achieved</div><div id="kpiGreen" class="text-4xl font-bold">0</div></div>
+<div id="cardYellow" onclick="setFilter('YELLOW')" class="kpi bg-yellow-500"><div>Near Target</div><div id="kpiYellow" class="text-4xl font-bold">0</div></div>
+<div id="cardRed" onclick="setFilter('RED')" class="kpi bg-red-600"><div>Need Action</div><div id="kpiRed" class="text-4xl font-bold">0</div></div>
 </div>
 
-<!-- KPI -->
-<div class="grid grid-cols-3 gap-4 text-center">
-  <div id="kpiGREEN" onclick="setKpiFilter('GREEN')" class="kpi-card bg-green-100 p-4 rounded-xl">
-    <p class="text-sm">≥100%</p>
-    <p id="kpiGreen" class="text-2xl font-bold">0</p>
-  </div>
-  <div id="kpiYELLOW" onclick="setKpiFilter('YELLOW')" class="kpi-card bg-yellow-100 p-4 rounded-xl">
-    <p class="text-sm">80–99%</p>
-    <p id="kpiYellow" class="text-2xl font-bold">0</p>
-  </div>
-  <div id="kpiRED" onclick="setKpiFilter('RED')" class="kpi-card bg-red-100 p-4 rounded-xl">
-    <p class="text-sm">&lt;80%</p>
-    <p id="kpiRed" class="text-2xl font-bold">0</p>
-  </div>
+<div class="grid md:grid-cols-3 gap-4">
+<select id="year" class="border rounded-lg p-2">
+<option>Y1</option><option>Y2</option><option>Y3</option>
+</select>
+<select id="activity" class="border rounded-lg p-2">
+<option value="ALL">All Activities</option>
+</select>
+<input id="search" class="border rounded-lg p-2" placeholder="Search indicator...">
 </div>
 
-<!-- CHART -->
 <div class="card">
-  <canvas id="chartMain"></canvas>
+<div class="flex justify-between mb-3">
+<h2 class="font-bold text-xl">Performance by Indicator</h2>
+<button id="sortBtn" class="bg-slate-100 px-3 py-1 rounded">Sort: Lowest First</button>
+</div>
+<div style="height:900px">
+<canvas id="chart"></canvas>
+</div>
 </div>
 
-<!-- NARRATIVE CONCLUSION -->
+<div class="grid md:grid-cols-2 gap-6">
 <div class="card">
-  <h2 class="text-xl font-bold mb-3">Narrative Conclusion</h2>
-  <p id="narrativeConclusion" class="text-gray-700 leading-relaxed"></p>
+<h2 class="font-bold text-xl mb-3">Narrative Conclusion</h2>
+<div id="narrative"></div>
 </div>
-
-<!-- PRIORITY RED -->
 <div class="card">
-  <h2 class="text-xl font-bold mb-3 text-red-600">
-    Priority Actions – Red Performance (&lt;80%)
-  </h2>
-  <div id="redList" class="space-y-3"></div>
-  <p id="noRed" class="text-gray-500 italic hidden">
-    Tidak terdapat aktivitas dengan performa di bawah 80%.
-  </p>
+<h2 class="font-bold text-xl text-red-600 mb-3">Priority Actions</h2>
+<div id="priority"></div>
+</div>
 </div>
 
 </div>
 
 <script>
-let fullData=[], chart, kpiFilter="ALL"
+let fullData=[],chart,ascending=true,performanceFilter='ALL',selectedIndicator=null;
 
-/* LOGIN */
-
-
-/* UPLOAD */
-upload.addEventListener("change",e=>{
-  const f=e.target.files[0]
-  fileName.textContent=f.name
-  const r=new FileReader()
-  r.onload=()=>{
-    const wb=XLSX.read(r.result,{type:"array"})
-    fullData=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]])
-    populateActivities()
-    filterYear.disabled=false
-    activitySelect.disabled=false
-    updateDashboard()
-  }
-  r.readAsArrayBuffer(f)
-})
-
-filterYear.addEventListener("change",resetKpi)
-activitySelect.addEventListener("change",resetKpi)
-
-function populateActivities(){
-  const acts=[...new Set(fullData.map(r=>r.Activity))]
-  activitySelect.innerHTML='<option value="ALL">All</option>'
-  acts.forEach(a=>{
-    const o=document.createElement("option")
-    o.value=o.text=a
-    activitySelect.add(o)
-  })
+upload.onchange=e=>{
+ const f=e.target.files[0];
+ if(!f)return;
+ fileName.textContent=f.name;
+ const reader=new FileReader();
+ reader.onload=()=>{
+  const wb=XLSX.read(reader.result,{type:'array'});
+  const sheet=wb.Sheets[wb.SheetNames[0]];
+  fullData=XLSX.utils.sheet_to_json(sheet);
+  loadActivities();
+  render();
+ };
+ reader.readAsArrayBuffer(f);
 }
 
-function setKpiFilter(t){
-  kpiFilter=(kpiFilter===t)?"ALL":t
-  updateDashboard()
+year.onchange=render;
+activity.onchange=render;
+search.oninput=render;
+sortBtn.onclick=()=>{ascending=!ascending;sortBtn.innerText=ascending?"Sort: Lowest First":"Sort: Highest First";render();}
+
+
+function setFilter(f){
+ performanceFilter=(performanceFilter===f && f!=='ALL')?'ALL':f;
+ document.querySelectorAll('.kpi').forEach(x=>x.classList.remove('active'));
+ if(performanceFilter==='GREEN') cardGreen.classList.add('active');
+ else if(performanceFilter==='YELLOW') cardYellow.classList.add('active');
+ else if(performanceFilter==='RED') cardRed.classList.add('active');
+ render();
 }
 
-function resetKpi(){ kpiFilter="ALL"; updateDashboard() }
-
-/* KPI */
-function calculateKPI(year){
-  let g=0,y=0,r=0,map={}
-  fullData.forEach(row=>{
-    if(activitySelect.value!=="ALL" && row.Activity!==activitySelect.value)return
-    let v=parseFloat(row[year]); if(isNaN(v))return
-    if(v>0&&v<=1)v*=100
-    if(!map[row.Activity])map[row.Activity]={A:0,T:0}
-    if(row.Type==="Actual")map[row.Activity].A=v
-    if(row.Type==="Target")map[row.Activity].T=v
-  })
-  Object.values(map).forEach(i=>{
-    if(i.T>0){
-      const p=i.A/i.T*100
-      if(p>=100)g++; else if(p>=80)y++; else r++
-    }
-  })
-  kpiGreen.textContent=g; kpiYellow.textContent=y; kpiRed.textContent=r
+function loadActivities(){
+ const acts=[...new Set(fullData.map(x=>x.Activity))];
+ activity.innerHTML='<option value="ALL">All Activities</option>';
+ acts.forEach(a=>{
+   let o=document.createElement("option");
+   o.value=o.text=a;
+   activity.add(o);
+ });
 }
 
-/* CHART */
-function drawChart(year){
-  const map={}
-  fullData.forEach(row=>{
-    if(activitySelect.value!=="ALL" && row.Activity!==activitySelect.value)return
-    let v=parseFloat(row[year]); if(isNaN(v))return
-    if(v>0&&v<=1)v*=100
-    if(!map[row.Activity])map[row.Activity]={A:0,T:0}
-    if(row.Type==="Actual")map[row.Activity].A=v
-    if(row.Type==="Target")map[row.Activity].T=v
-  })
+function render(){
+ const y=year.value;
+ let map={};
+ fullData.forEach(r=>{
+   if(activity.value!="ALL" && r.Activity!==activity.value)return;
+   if(search.value && !r.Activity.toLowerCase().includes(search.value.toLowerCase()))return;
+   let v=parseFloat(r[y]);
+   if(isNaN(v))return;
+   map[r.Activity]??={A:0,T:0};
+   if(r.Type==="Actual")map[r.Activity].A=v;
+   else map[r.Activity].T=v;
+ });
 
-  const labels=[],actual=[],target=[]
-  Object.entries(map).forEach(([a,v])=>{
-    if(v.T<=0)return
-    const p=v.A/v.T*100
-    if(kpiFilter==="GREEN"&&p<100)return
-    if(kpiFilter==="YELLOW"&&(p<80||p>=100))return
-    if(kpiFilter==="RED"&&p>=80)return
-    labels.push(a); actual.push(v.A); target.push(v.T)
-  })
+ let rows=[];
+ let g=0,ye=0,re=0,sum=0;
+ Object.entries(map).forEach(([a,v])=>{
+   if(v.T<=0)return;
+   let p=v.A/v.T*100;
+   if(performanceFilter==='GREEN' && p<100) return;
+   if(performanceFilter==='YELLOW' && (p<80 || p>=100)) return;
+   if(performanceFilter==='RED' && p>=80) return;
+   rows.push({a,...v,p});
+   sum+=p;
+   if(p>=100)g++; else if(p>=80)ye++; else re++;
+ });
 
-  chart?.destroy()
-  chart=new Chart(chartMain,{
-    type:"bar",
-    data:{labels,datasets:[
-      {label:"Target",data:target,backgroundColor:"#fca5a5"},
-      {label:"Actual",data:actual,
-       backgroundColor:actual.map((a,i)=>{
-        const p=a/target[i]*100
-        return p>=100?"#22c55e":p>=80?"#facc15":"#ef4444"
-       })}
-    ]},
-    options:{
-      plugins:{title:{display:true,text:`${year} Performance`},
-        datalabels:{formatter:(v,i)=>{
-          const t=target[i.dataIndex]; return t>0?Math.round(v/t*100)+"%":""
-        },anchor:"end",align:"top",font:{size:10}}
-      },scales:{y:{beginAtZero:true}}
-    },
-    plugins:[ChartDataLabels]
-  })
-}
+ rows.sort((a,b)=>ascending?a.p-b.p:b.p-a.p);
 
-/* NARRATIVE */
-function updateNarrative(year){
-  const g=+kpiGreen.textContent,y=+kpiYellow.textContent,r=+kpiRed.textContent
-  narrativeConclusion.innerHTML=`
-  Berdasarkan hasil analisis kinerja Tahun <strong>${year}</strong>, secara umum capaian program menunjukkan performansi yang 
-  <strong>${g>r?"baik":"perlu penguatan"}</strong>. 
-  Sebanyak <strong>${g}</strong> aktivitas telah mencapai atau melampaui target, 
-  <strong>${y}</strong> aktivitas hampir mencapai target, dan 
-  <strong>${r}</strong> aktivitas berada di bawah 80% sehingga menjadi prioritas tindak lanjut.`
-}
+ kpiGreen.innerText=g;
+ kpiYellow.innerText=ye;
+ kpiRed.innerText=re;
 
-/* RED PRIORITY */
-function updateRed(year){
-  const map={},list=[]
-  fullData.forEach(row=>{
-    let v=parseFloat(row[year]); if(isNaN(v))return
-    if(v>0&&v<=1)v*=100
-    if(!map[row.Activity])map[row.Activity]={A:0,T:0}
-    if(row.Type==="Actual")map[row.Activity].A=v
-    if(row.Type==="Target")map[row.Activity].T=v
-  })
-  Object.entries(map).forEach(([a,v])=>{
-    if(v.T>0){
-      const p=Math.round(v.A/v.T*100)
-      if(p<80)list.push({a,p})
-    }
-  })
-  redList.innerHTML=""
-  if(list.length===0){noRed.classList.remove("hidden");return}
-  noRed.classList.add("hidden")
-  list.sort((x,y)=>x.p-y.p).forEach((i,n)=>{
-    redList.innerHTML+=`
-    <div class="p-3 bg-red-50 border-l-4 border-red-600 rounded">
-      <strong>${n+1}. ${i.a}</strong>
-      <span class="float-right text-red-600 font-bold">${i.p}%</span>
-    </div>`
-  })
-}
+ chart?.destroy();
+ chart=new Chart(document.getElementById("chart"),{
+   type:"bar",
+   data:{
+      labels:rows.map(r=>r.a.split(":")[0]),
+      datasets:[{
+         data:rows.map(r=>r.p),
+         borderRadius:8,
+         backgroundColor:rows.map(r=>r.p>=100?"#22c55e":r.p>=80?"#facc15":"#ef4444")
+      }]
+   },
+   options:{
+      maintainAspectRatio:false,
+      indexAxis:'y',
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title:c=>rows[c[0].dataIndex].a,
+            label:c=>{
+              const r=rows[c.dataIndex];
+              return [`Achievement: ${r.p.toFixed(1)}%`,`Target: ${r.T}`,`Actual: ${r.A}`];
+            }
+          }
+        },
+        datalabels:{
+          anchor:'end',
+          align:'right',
+          formatter:v=>v.toFixed(0)+'%'
+        }
+      },
+      scales:{x:{beginAtZero:true,title:{display:true,text:'Achievement (%)'}}},
+      onClick:(evt,elements)=>{
+          if(!elements.length) return;
+          const idx=elements[0].index;
+          const item=rows[idx];
 
-function updateDashboard(){
-  const y=filterYear.value
-  calculateKPI(y); drawChart(y); updateNarrative(y); updateRed(y)
+          if(selectedIndicator===item.a){
+              selectedIndicator=null;
+          }else{
+              selectedIndicator=item.a;
+          }
+
+          activity.value=selectedIndicator ?? 'ALL';
+          render();
+      }
+   },
+   plugins:[ChartDataLabels]
+ });
+
+ narrative.innerHTML=`<p><b>${g}</b> indicators achieved or exceeded the target, <b>${ye}</b> are near target, and <b>${re}</b> require corrective action. Average achievement is <b>${(rows.length?sum/rows.length:0).toFixed(1)}%</b>.</p>`;
+
+ let red=rows.filter(r=>r.p<80);
+ priority.innerHTML=red.length?red.map((r,i)=>`<div class="border-l-4 border-red-600 bg-red-50 p-3 mb-2"><b>${i+1}. ${r.a}</b><span class="float-right text-red-600">${r.p.toFixed(0)}%</span></div>`).join(""):"<i>No red indicators.</i>";
 }
 </script>
-
 </body>
 </html>
