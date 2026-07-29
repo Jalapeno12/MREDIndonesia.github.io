@@ -45,37 +45,7 @@
     </div>
   </main>
 
-  <script>
-    
-
-    const btn = document.getElementById('dropdownButton');
-    const menu = document.getElementById('dropdownMenu');
-    const frame = document.getElementById('mainFrame');
-
-    btn.addEventListener('click', () => menu.classList.toggle('hidden'));
-    document.querySelectorAll('.dropdown-link').forEach(link => {
-      link.addEventListener('click', e => {
-        e.preventDefault();
-        const type = link.dataset.type;
-        menu.classList.add('hidden');
-        if (type === 'powerbi') {
-          frame.src = "https://app.powerbi.com/reportEmbed?reportId=e8e125ca-d8ec-4f53-a8be-c622aab8fcf7&autoAuth=true&ctid=08de8628-593e-43f5-9ceb-f3e5dd7ae2cb";
-        } else if (type === 'cctv') {
-          frame.src = "cctv.html";
-        } else if (type === 'maps') {
-          frame.src = "https://www.google.com/maps/d/embed?mid=1ijGRGpTRMf4U_WScKW8zmg1LAkElZaI&ehbc=2E312F";
-        } else if (type === 'actual vs target') { // <--- ADD THIS BLOCK
-          frame.src = "actual_vs_target_dashboard_MRED-Indonesia_DA_.html";
-        }else if (type === 'activity') { // <--- ADD THIS BLOCK
-          frame.src = "LF.html";
-        }
-      });
-    });
-    window.addEventListener('click', e => {
-      if (!btn.contains(e.target) && !menu.contains(e.target)) menu.classList.add('hidden');
-    });
-  </script>
-
+  
  
 </body>
 </html>
