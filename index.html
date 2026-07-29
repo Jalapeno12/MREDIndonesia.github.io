@@ -33,7 +33,7 @@
         <div class="py-1">
           <a href="#" data-type="powerbi" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">Laporan Utama</a>
           <a href="actual_vs_target_dashboard_MRED-Indonesia_DA_.html" data-type="actual vs target" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">Actual Vs Target</a>
-           <a href="Procurement.html" data-type="procurement" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">procurement</a>
+           <a href="Procurement.html" data-type="procurement" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">Procurement</a>
           <a href="cctv.html" data-type="cctv" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">CCTV</a>
           <a href="#" data-type="maps" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">Maps</a>
           <a href="LF.html" data-type="activity" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">Activity</a>
@@ -48,7 +48,7 @@
         src="https://app.powerbi.com/reportEmbed?reportId=e8e125ca-d8ec-4f53-a8be-c622aab8fcf7&autoAuth=true&ctid=08de8628-593e-43f5-9ceb-f3e5dd7ae2cb">
       
       <iframe id="mainFrame" class="w-full h-[80vh] rounded shadow border" frameborder="0" allowfullscreen
-        src="https://app.powerbi.com/reportEmbed?reportId=876eef2a-937c-42d9-b8a0-13b37f753e30&autoAuth=true&ctid=08de8628-593e-43f5-9ceb-f3e5dd7ae2cb">
+        src="https://app.powerbi.com/reportEmbed?reportId=e8e125ca-d8ec-4f53-a8be-c622aab8fcf7&autoAuth=true&ctid=08de8628-593e-43f5-9ceb-f3e5dd7ae2cb">
       </iframe>
       </iframe>
     </div>
@@ -77,7 +77,7 @@
         const type = link.dataset.type;
         menu.classList.add('hidden');
         if (type === 'powerbi') {
-          frame.src = "https://app.powerbi.com/reportEmbed?reportId=876eef2a-937c-42d9-b8a0-13b37f753e30&autoAuth=true&ctid=08de8628-593e-43f5-9ceb-f3e5dd7ae2cb";
+          frame.src = "https://app.powerbi.com/reportEmbed?reportId=e8e125ca-d8ec-4f53-a8be-c622aab8fcf7&autoAuth=true&ctid=08de8628-593e-43f5-9ceb-f3e5dd7ae2cb";
         } else if (type === 'cctv') {
           frame.src = "cctv.html";
         } else if (type === 'maps') {
