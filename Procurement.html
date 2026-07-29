@@ -8,7 +8,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
- 
+  
+    </div>
+  </div>
 
   <header class="bg-white shadow p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
     <h1 class="text-xl font-bold text-gray-800">Managing Risk Through Economic Development-Indonesia</h1>
@@ -21,7 +23,7 @@
       </button>
       <div id="dropdownMenu" class="absolute z-10 mt-2 w-full sm:w-56 bg-white rounded shadow-lg ring-1 ring-black ring-opacity-5 hidden">
         <div class="py-1">
-          <a href="index.html" data-type="powerbi" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">Laporan Utama</a>
+          <a href="#" data-type="powerbi" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">Laporan Utama</a>
           <a href="actual_vs_target_dashboard_MRED-Indonesia_DA_.html" data-type="actual vs target" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">Actual Vs Target</a>
           <a href="cctv.html" data-type="cctv" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">CCTV</a>
           <a href="#" data-type="maps" class="dropdown-link block px-4 py-2 text-gray-700 hover:bg-gray-100">Maps</a>
@@ -44,7 +46,7 @@
   </main>
 
   <script>
-   
+    
 
     const btn = document.getElementById('dropdownButton');
     const menu = document.getElementById('dropdownMenu');
@@ -57,7 +59,7 @@
         const type = link.dataset.type;
         menu.classList.add('hidden');
         if (type === 'powerbi') {
-          frame.src = "https://app.powerbi.com/reportEmbed?reportId=cfa0a67f-4422-4a2e-b3f1-ccbcd739fcf1&autoAuth=true&ctid=08de8628-593e-43f5-9ceb-f3e5dd7ae2cb";
+          frame.src = "https://app.powerbi.com/reportEmbed?reportId=e8e125ca-d8ec-4f53-a8be-c622aab8fcf7&autoAuth=true&ctid=08de8628-593e-43f5-9ceb-f3e5dd7ae2cb";
         } else if (type === 'cctv') {
           frame.src = "cctv.html";
         } else if (type === 'maps') {
